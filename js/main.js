@@ -2,7 +2,6 @@
  * Main program function
  */
 function main() {
-
 	//Get canvas data
 	canvas.getCanvas();
 

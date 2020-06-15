@@ -1,12 +1,12 @@
 var shaders = {
 
     initProgram: function() {
-        compileShaders();
-        linkShaders();
-        getAttributesLocation();
-        getUniformsLocation();
-        createVaos();
-        putAttributesOnGpu();
+        this.compileShaders();
+        this.linkShaders();
+        this.getAttributesLocation();
+        this.getUniformsLocation();
+        this.createVaos();
+        this.putAttributesOnGpu();
     },
 
     compileShaders: function() {

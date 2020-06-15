@@ -11,9 +11,9 @@ var models = {
     */
     updateTransformationMatrices: function () {
         //#TODO Review 
-        updateModels();
-        updateView();
-        updatePerspective();
+        this.updateModels();
+        this.updateView();
+        this.updatePerspective();
     },
 
     /**
