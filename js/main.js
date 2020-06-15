@@ -1,18 +1,9 @@
 /**
- * Canvas variables
- */
-var canvas = document.getElementById("main_canvas"),
-	canvasWidth = canvas.clientWidth,
-	canvasHeigth = canvas.clientHeight,
-	aspect = canvasWidth / canvasHeigth,
-	gl;
-
-/**
  * Main program function
  */
 function main() {
 	//Get canvas data
-	canvas.getCanvas();
+	canvas.init().then(canvas.getCanvas());
 
 	//Initialize GLSL program
 	shaders.initProgram();

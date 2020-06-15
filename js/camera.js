@@ -32,5 +32,7 @@ var camera = {
     /**
      * Compute the new camera position and rotation
     */
-    cameraMovement: function () { },
+    cameraMovement: function () { 
+        //#TODO
+    },
 };

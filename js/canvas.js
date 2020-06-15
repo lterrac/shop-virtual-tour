@@ -21,7 +21,7 @@ var canvas = {
 
     gl: null,
 
-    initialize: function() {
+    init: async function() {        
         this.canvas = document.getElementById("main_canvas");
         console.log(this.canvas);
         
@@ -46,5 +46,3 @@ var canvas = {
         this.gl.enable(this.gl.DEPTH_TEST);
     },
 }
-
-window.onload = canvas.initialize();
