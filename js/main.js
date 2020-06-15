@@ -1,4 +1,13 @@
 /**
+ * Canvas variables
+ */
+var canvas = document.getElementById("main_canvas"),
+	canvasWidth = canvas.clientWidth,
+	canvasHeigth = canvas.clientHeight,
+	aspect = canvasWidth / canvasHeigth,
+	gl;
+
+/**
  * Main program function
  */
 function main() {
@@ -35,9 +44,16 @@ function drawScene() {
 	window.requestAnimationFrame(drawScene);
 }
 
+/**
+ * Draw scene frame
+ */
+function drawScene() {
+	//Move the camera
+	camera.cameraMovement();
+}
 
 //main function is the program entry point
 window.onload = main;
 
-//Set the Event handler for key pressed 
+//Set the Event handler for key pressed
 utils.initInteraction();
