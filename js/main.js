@@ -11,7 +11,6 @@ var canvas = document.getElementById("main_canvas"),
  * Main program function
  */
 function main() {
-
 	//Get canvas data
 	canvas.getCanvas();
 
