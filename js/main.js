@@ -1,16 +1,17 @@
 /**
  * Main program function
  */
-function main() {
+async function main() {
 	//Get canvas data
+	canvas.initialize();
 	canvas.getCanvas();
 
 	//Load models
 	models.loadModels();
 
 	//Initialize GLSL program
-	shaders.initProgram();
-
+	await shadersGLSL.initialize();
+	
 	//Draw the scene
 	drawScene();
 
@@ -19,20 +20,20 @@ function main() {
 /**
  * Draw the scene fram
  */
-function drawScene() {
+function drawScene() {	
 	//Update objects matrices
 	models.updateTransformationMatrices();
 	
 	//Send data to GLSL program
-	shaders.bindVertexArray();
-	shaders.sendUniformsToGpU();
+	shadersGLSL.bindVertexArray();
+	shadersGLSL.sendUniformsToGpU();
 
 	//Draw the objects
-	shaders.drawObjects();
+	shadersGLSL.drawObjects();
 
 	//Draw every furniture 
-	models.furnitures.forEach( (name, furniture) => {
-		models.gl.drawElements(gl.TRIANGLES, furniture.indices.length, models.gl.UNSIGNED_SHORT, 0);
+	models.furnitures.forEach( furniture => {
+		models.gl.drawElements(models.gl.TRIANGLES, furniture.indices.length, models.gl.UNSIGNED_SHORT, 0);
 	});
 
 	//Execute the function every frame

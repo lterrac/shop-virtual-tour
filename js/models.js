@@ -4,9 +4,7 @@ var models = {
         'bed',
     ],
 
-    furnitures: {
-        'bed': null,
-    },
+    furnitures: new Map(),
 
     gl: null,
 
@@ -28,15 +26,15 @@ var models = {
         utils.get_json(furnitureUrl + ".json",
             model => {
                 //Extract model's data
-                this.furnitures[furnitureName] = {};
-                this.furnitures[furnitureName].model = model;
-                this.furnitures[furnitureName].vertices = model.meshes[0].vertices;
-                this.furnitures[furnitureName].indices = [].concat.apply([], model.meshes[0].faces)
-                this.furnitures[furnitureName].textureCoordinates = model.meshes[0].texturecoords[0];
-                this.furnitures[furnitureName].normals = model.meshes[0].normals;
-                this.furnitures[furnitureName].texture = canvas.gl.createTexture();
+                this.furnitures.set(furnitureName, {});
+                this.furnitures.get(furnitureName).model = model;
+                this.furnitures.get(furnitureName).vertices = model.meshes[0].vertices;
+                this.furnitures.get(furnitureName).indices = [].concat.apply([], model.meshes[0].faces)
+                this.furnitures.get(furnitureName).textureCoordinates = model.meshes[0].texturecoords[0];
+                this.furnitures.get(furnitureName).normals = model.meshes[0].normals;
+                this.furnitures.get(furnitureName).texture = canvas.gl.createTexture();
 
-                var texture = this.furnitures[furnitureName].texture;
+                var texture = this.furnitures.get(furnitureName).texture;
                 this.gl = canvas.gl;
                 var gl = this.gl;
 

@@ -2,6 +2,10 @@
 
 precision mediump float;
 
+in vec3 fs_pos;
+in vec3 fs_norm;
+in vec2 fs_uv;
+
 out vec4 out_col;
 
 void main() {

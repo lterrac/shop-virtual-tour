@@ -9,5 +9,8 @@ out vec3 fs_norm;
 out vec2 fs_uv;
 
 void main() {
-    gl_Position = in_pos;
+    gl_Position = vec4(in_pos, 1.0);
+    fs_uv = in_uv;
+    fs_norm = in_norm; 
+    fs_pos = in_pos;
 }

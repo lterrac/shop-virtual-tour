@@ -1,4 +1,4 @@
-var shaders = {
+var shadersGLSL = {
 
     positionAttributeLocation: null,
 
@@ -14,9 +14,9 @@ var shaders = {
 
     gl: null,
 
-    initProgram: function() {
+    initialize: async function() {
         this.gl = canvas.gl;
-        this.compileShaders();
+        await this.compileShaders();
         this.linkShaders();
         this.getAttributesLocation();
         this.getUniformsLocation();
@@ -27,23 +27,24 @@ var shaders = {
     /**
      * Compile and load shaders
      */
-    compileShaders: function() {
+    compileShaders: async function() {      
         shaderUrl = "http://127.0.0.1:8000/shaders/";
-        utils.loadFiles([shaderUrl + "vertex_shader.glsl", shaderUrl + "fragment_shader.glsl"],
-                        shadersText => {
+        await utils.loadFiles([shaderUrl + "vertex_shader.glsl", shaderUrl + "fragment_shader.glsl"],
+                        shadersText => {                            
                             this.vertexShader = utils.createShader(this.gl, this.gl.VERTEX_SHADER, shadersText[0]);
                             this.fragmentShader = utils.createShader(this.gl, this.gl.FRAGMENT_SHADER, shadersText[1]);
+                            
                         });
     },
 
     linkShaders: function() {
-        this.program = utils.createProgram(this.gl, this.vertexShader, this.fragmentShader);
+        this.program = utils.createProgram(this.gl, this.vertexShader, this.fragmentShader);       
     },
 
     getAttributesLocation: function() {
-        this.positionAttributeLocation = gl.getAttribLocation(this.program, 'in_pos');
-        this.normalAttributeLocation = gl.getAttribLocation(this.program, 'in_norm');
-        this.uvAttributeLocation = gl.getAttribLocation(this.program, 'in_uv');
+        this.positionAttributeLocation = this.gl.getAttribLocation(this.program, 'in_pos');
+        this.normalAttributeLocation = this.gl.getAttribLocation(this.program, 'in_norm');
+        this.uvAttributeLocation = this.gl.getAttribLocation(this.program, 'in_uv');
     },
 
     getUniformsLocation: function() {
@@ -68,9 +69,9 @@ var shaders = {
         gl.bindVertexArray(furniture.vao);
 
         //Create VBO for vertices, normals and uv textures
-        furniture.positionBuffer = this.initVbo(furniture.vertices, 3, shaders.positionAttributeLocation);
-        furniture.normalBuffer = this.initVbo(furniture.normals, 3, shaders.normalAttributeLocation);
-        furniture.uvBuffer = this.initVbo(furniture.uvBuffer, 2, shaders.uvAttributeLocation);
+        furniture.positionBuffer = this.initVbo(furniture.vertices, 3, shadersGLSL.positionAttributeLocation);
+        furniture.normalBuffer = this.initVbo(furniture.normals, 3, shadersGLSL.normalAttributeLocation);
+        furniture.uvBuffer = this.initVbo(furniture.uvBuffer, 2, shadersGLSL.uvAttributeLocation);
 
         furniture.indicesBuffer = this.createIndicesBuffer(furniture.indices)
 
