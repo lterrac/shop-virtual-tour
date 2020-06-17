@@ -5,11 +5,11 @@ function main() {
 	//Get canvas data
 	canvas.getCanvas();
 
-	//Initialize GLSL program
-	shaders.initProgram();
-
 	//Load models
 	models.loadModels();
+
+	//Initialize GLSL program
+	shaders.initProgram();
 
 	//Draw the scene
 	drawScene();
@@ -29,6 +29,11 @@ function drawScene() {
 
 	//Draw the objects
 	shaders.drawObjects();
+
+	//Draw every furniture 
+	models.furnitures.forEach( (name, furniture) => {
+		models.gl.drawElements(gl.TRIANGLES, furniture.indices.length, models.gl.UNSIGNED_SHORT, 0);
+	});
 
 	//Execute the function every frame
 	window.requestAnimationFrame(drawScene);

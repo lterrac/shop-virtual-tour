@@ -16,7 +16,6 @@ var models = {
     loadModels: function () {
         this.furnituresName.forEach(furnitureName => {
             this.loadModel(furnitureName);
-            this.createVao(furnitureName);
         });
     },
 
@@ -56,61 +55,6 @@ var models = {
                     gl.generateMipmap(gl.TEXTURE_2D);
                 };
             });
-    },
-
-    /**
-     * Create Vertex Array Object associated with a single furniture
-     * @param {String} furnitureName 
-     */
-    createVao: function (furnitureName) {
-        var gl = this.gl;
-        var furniture = this.furnitures[furnitureName];
-
-        //Create and enable Vertex Array Object
-        furniture.vao = gl.createVertexArray();
-        gl.bindVertexArray(furniture.vao);
-
-        //Create VBO for vertices, normals and uv textures
-        furniture.positionBuffer = this.initVbo(furniture.vertices, 3, shaders.positionAttributeLocation);
-        furniture.normalBuffer = this.initVbo(furniture.normals, 3, shaders.normalAttributeLocation);
-        furniture.uvBuffer = this.initVbo(furniture.uvBuffer, 2, shaders.uvAttributeLocation);
-
-        furniture.indicesBuffer = this.createIndicesBuffer(furniture.indices)
-
-    },
-
-    /**
-     * Initialize a Vertex Buffer Object and set the data to be buffered in it.
-     * @param {Array} data Data to be buffered
-     * @param {Integer} dataSize Dimension of single data (e.g. vertices = 3)
-     * @param {AttributeLocation} attributeLocation Pointer to a varible defined in the shaders 
-     * @returns {Buffer} Buffer in which data are stored 
-     */
-    initVbo: function (data, dataSize, attributeLocation) {
-        var buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data).gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(attributeLocation);
-
-        //binds the buffer bound to gl.ARRAY_BUFFER to a vertex attribute of the current Vertex Buffer Object and specifies its layout.
-        var normalized = false;
-        var stride = 0;
-        var offset = 0;
-        gl.vertexAttribPointer(attributeLocation, dataSize, gl.FLOAT, normalized, stride, offset);
-
-        return buffer;
-    },
-
-    /**
-     * Initialize indices buffer
-     * @param {Array} indices Indices array
-     */
-    createIndicesBuffer: function(indices) {
-        var buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-
-        return buffer;
     },
     
     /**
