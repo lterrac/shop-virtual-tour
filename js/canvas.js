@@ -1,16 +1,5 @@
-var canvas = {
-
-    //TODO Find a way to use this if possible
-    // canvas: document.getElementById("main_canvas"),
-
-    // canvasWidth: this.canvas.clientWidth,
-
-    // canvasHeigth: this.canvas.clientHeigth,
-
-    // aspect: this.canvasWidth / this.canvasHeigth,
-
-    // gl: this.canvas.getContext("webgl2"),
-    
+var canvasUtils = {
+        
     canvas: null,
 
     canvasWidth: null,
@@ -41,7 +30,7 @@ var canvas = {
         //Set the canvas
         utils.resizeCanvasToDisplaySize(this.canvas);
         this.gl.viewport(0, 0, this.canvasWidth, this.canvasHeigth);
-        this.gl.clearColor(1, 1, 1, 1);
+        this.gl.clearColor(0.85, 0.85, 0.85, 1);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.gl.enable(this.gl.DEPTH_TEST);
     },

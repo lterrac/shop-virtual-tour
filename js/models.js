@@ -11,9 +11,9 @@ var models = {
     /**
      * Load models from file
      */
-    loadModels: function () {
+    loadModels: async function () {
         this.furnituresName.forEach(furnitureName => {
-            this.loadModel(furnitureName);
+            await this.loadModel(furnitureName);
         });
     },
 
@@ -21,9 +21,9 @@ var models = {
      * Load a single model in memory
      * @param {String} furnitureName 
      */
-    loadModel: function (furnitureName) {
+    loadModel: async function (furnitureName) {
         furnitureUrl = "http://127.0.0.1:8000/models/" + furnitureName + "/" + furnitureName;
-        utils.get_json(furnitureUrl + ".json",
+        await utils.get_json(furnitureUrl + ".json",
             model => {
                 //Extract model's data
                 this.furnitures.set(furnitureName, {});
@@ -32,29 +32,29 @@ var models = {
                 this.furnitures.get(furnitureName).indices = [].concat.apply([], model.meshes[0].faces)
                 this.furnitures.get(furnitureName).textureCoordinates = model.meshes[0].texturecoords[0];
                 this.furnitures.get(furnitureName).normals = model.meshes[0].normals;
-                this.furnitures.get(furnitureName).texture = canvas.gl.createTexture();
+                // this.furnitures.get(furnitureName).texture = canvas.gl.createTexture();
 
-                var texture = this.furnitures.get(furnitureName).texture;
-                this.gl = canvas.gl;
-                var gl = this.gl;
+                // var texture = this.furnitures.get(furnitureName).texture;
+                // this.gl = canvas.gl;
+                // var gl = this.gl;
 
-                //Create and set texture
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, texture);
+                // //Create and set texture
+                // gl.activeTexture(gl.TEXTURE0);
+                // gl.bindTexture(gl.TEXTURE_2D, texture);
 
-                var image = new Image();
-                //Done for security reason
-                image.crossOrigin = "anonymous";
-                image.src = furnitureUrl + ".png";
+                // var image = new Image();
+                // //Done for security reason
+                // image.crossOrigin = "anonymous";
+                // image.src = furnitureUrl + ".png";
 
-                image.onload = function () {
-                    gl.bindTexture(gl.TEXTURE_2D, texture);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-                    gl.generateMipmap(gl.TEXTURE_2D);
-                };
+                // image.onload = function () {
+                //     gl.bindTexture(gl.TEXTURE_2D, texture);
+                //     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                //     gl.generateMipmap(gl.TEXTURE_2D);
+                // };
             });
     },
-    
+
     /**
      * Updates the object local and world matrices, the View and the perspetcive matrix
     */

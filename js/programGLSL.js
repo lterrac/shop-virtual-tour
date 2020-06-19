@@ -2,9 +2,9 @@ var shadersGLSL = {
 
     positionAttributeLocation: null,
 
-    normalAttributeLocation: null,
+    // normalAttributeLocation: null,
 
-    uvAttributeLocation: null,
+    // uvAttributeLocation: null,
 
     vertexShader: null,
 
@@ -14,11 +14,13 @@ var shadersGLSL = {
 
     gl: null,
 
-    initialize: async function() {
-        this.gl = canvas.gl;
+    initialize: async function (gl) {
+        this.gl = gl;
+
         await this.compileShaders();
-        this.linkShaders();
+
         this.getAttributesLocation();
+
         this.getUniformsLocation();
         this.createVaos();
         this.putAttributesOnGpu();
@@ -27,32 +29,33 @@ var shadersGLSL = {
     /**
      * Compile and load shaders
      */
-    compileShaders: async function() {      
-        shaderUrl = "http://127.0.0.1:8000/shaders/";
-        await utils.loadFiles([shaderUrl + "vertex_shader.glsl", shaderUrl + "fragment_shader.glsl"],
-                        shadersText => {                            
-                            this.vertexShader = utils.createShader(this.gl, this.gl.VERTEX_SHADER, shadersText[0]);
-                            this.fragmentShader = utils.createShader(this.gl, this.gl.FRAGMENT_SHADER, shadersText[1]);
-                            
-                        });
+    compileShaders: async function () {
+        var path = window.location.pathname;
+        var page = path.split("/").pop();
+        baseDir = window.location.href.replace(page, '');
+        shaderDir = baseDir+"shaders/";
+        await utils.loadFiles([shaderDir + 'vertex_shader.glsl', shaderDir + 'fragment_shader.glsl'], function (shaderText) {
+            var vertexShader = utils.createShader(this.gl, this.gl.VERTEX_SHADER, shaderText[0]);
+            console.log(vertexShader);
+            var fragmentShader = utils.createShader(this.gl, this.gl.FRAGMENT_SHADER, shaderText[1]);
+            this.program = utils.createProgram(this.gl, vertexShader, fragmentShader);
+      
+          });
+          gl.useProgram(program);
     },
 
-    linkShaders: function() {
-        this.program = utils.createProgram(this.gl, this.vertexShader, this.fragmentShader);       
-    },
-
-    getAttributesLocation: function() {
+    getAttributesLocation: function () {
         this.positionAttributeLocation = this.gl.getAttribLocation(this.program, 'in_pos');
-        this.normalAttributeLocation = this.gl.getAttribLocation(this.program, 'in_norm');
-        this.uvAttributeLocation = this.gl.getAttribLocation(this.program, 'in_uv');
+        // this.normalAttributeLocation = this.gl.getAttribLocation(this.program, 'in_norm');
+        // this.uvAttributeLocation = this.gl.getAttribLocation(this.program, 'in_uv');
     },
 
-    getUniformsLocation: function() {
-        //#TODO
+    getUniformsLocation: function () {
+        this.matrixLocation = this.gl.getUniformLocation(this.program, "matrix");
     },
 
-    createVaos: function() {
-        models.furnitures.forEach( (name, furniture) => {
+    createVaos: function () {
+        models.furnitures.forEach((furniture) => {
             this.createVao(furniture)
         });
     },
@@ -69,12 +72,13 @@ var shadersGLSL = {
         gl.bindVertexArray(furniture.vao);
 
         //Create VBO for vertices, normals and uv textures
-        furniture.positionBuffer = this.initVbo(furniture.vertices, 3, shadersGLSL.positionAttributeLocation);
-        furniture.normalBuffer = this.initVbo(furniture.normals, 3, shadersGLSL.normalAttributeLocation);
-        furniture.uvBuffer = this.initVbo(furniture.uvBuffer, 2, shadersGLSL.uvAttributeLocation);
 
-        furniture.indicesBuffer = this.createIndicesBuffer(furniture.indices)
+        furniture.positionBuffer = this.initVbo(vertices, 3, this.positionAttributeLocation);
+        //furniture.positionBuffer = this.initVbo(furniture.vertices, 3, this.positionAttributeLocation);
+        // furniture.normalBuffer = this.initVbo(furniture.normals, 3, shadersGLSL.normalAttributeLocation);
+        // furniture.uvBuffer = this.initVbo(furniture.textureCoordinates, 2, shadersGLSL.uvAttributeLocation);
 
+        furniture.indicesBuffer = this.createIndicesBuffer(indices)
     },
 
     /**
@@ -85,9 +89,11 @@ var shadersGLSL = {
      * @returns {Buffer} Buffer in which data are stored 
      */
     initVbo: function (data, dataSize, attributeLocation) {
+        var gl = this.gl;
         var buffer = gl.createBuffer();
+
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data).gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
         gl.enableVertexAttribArray(attributeLocation);
 
         //binds the buffer bound to gl.ARRAY_BUFFER to a vertex attribute of the current Vertex Buffer Object and specifies its layout.
@@ -103,7 +109,8 @@ var shadersGLSL = {
      * Initialize indices buffer
      * @param {Array} indices Indices array
      */
-    createIndicesBuffer: function(indices) {
+    createIndicesBuffer: function (indices) {
+        var gl = this.gl;
         var buffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
@@ -112,19 +119,32 @@ var shadersGLSL = {
     },
 
 
-    putAttributesOnGpu: function() {
+    putAttributesOnGpu: function () {
         //#TODO
     },
 
-    bindVertexArray: function() {
+    bindVertexArray: function () {
         //#TODO
     },
 
-    sendUniformsToGpU: function() {
+    sendUniformsToGpU: function () {
         //#TODO
     },
 
-    drawObjects: function() {
-        //#TODO
+    drawObjects: function () {
+        models.furnitures.forEach(furniture => {
+
+            this.gl.clearColor(0, 0, 0, 0);
+            this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+
+            var perspectiveMatrix = utils.MakePerspective(90, this.gl.canvas.width/this.gl.canvas.height, 0.1, 100.0);//*****NEW*****//
+            var viewMatrix = utils.MakeView(0.5, 0.0, 1.0, 0.0, -30.0);//*****NEW*****//
+            var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewMatrix);
+            
+            this.gl.uniformMatrix4fv(this.matrixLocation, this.gl.FALSE, utils.transposeMatrix(projectionMatrix)); 
+            this.gl.bindVertexArray(furniture.vao);
+            
+            this.gl.drawElements(this.gl.TRIANGLES, indices.length, this.gl.UNSIGNED_SHORT, 0);
+        });
     },
 }
