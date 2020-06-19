@@ -7,6 +7,8 @@ var modelStr = 'models/bed/bed.json';
 var modelTexture = 'models/bed/bed.png';
 
 function main() {
+
+
     
     var lastUpdateTime = (new Date).getTime();
     
@@ -107,19 +109,46 @@ function main() {
 }
 
 async function init(){
-  
-    var path = window.location.pathname;
-    var page = path.split("/").pop();
-    baseDir = window.location.href.replace(page, '');
-    shaderDir = baseDir+"shaders/";
 
-    var canvas = document.getElementById("main_canvas");
+	canvas = getCanvas();
+
+	await initializeProgram();
+
+	await loadModels();
+    
+    main();
+}
+
+window.onload = init;
+
+function getCanvas() {
+	canvas = document.getElementById("main_canvas");
     gl = canvas.getContext("webgl2");
     if (!gl) {
         document.write("GL context not opened");
         return;
     }
+}
 
+async function initializeProgram() {
+
+	await compileAndLinkShaders();
+
+	getAttributeLocations();
+
+	getUniformLocations();
+
+	createVAOs();
+
+	putAttributesOnGPU();
+}
+
+async function compileAndLinkShaders() {
+	var path = window.location.pathname;
+    var page = path.split("/").pop();
+    baseDir = window.location.href.replace(page, '');
+	shaderDir = baseDir+"shaders/";
+	
     await utils.loadFiles([shaderDir + 'vs.glsl', shaderDir + 'fs.glsl'], function (shaderText) {
       var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, shaderText[0]);
       var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, shaderText[1]);
@@ -127,67 +156,28 @@ async function init(){
 
     });
     gl.useProgram(program);
-    
-    //###################################################################################
+}
+
+function getAttributeLocations(){
+
+}
+
+function getUniformLocations() {
+
+}
+
+function createVAOs() {
+
+}
+
+function putAttributesOnGPU(){
+
+}
+
+async function loadModels() {
+	//###################################################################################
     //This loads the json model in the susanModel variable
     await utils.get_json(modelStr, function(loadedModel){susanModel = loadedModel;});
     //###################################################################################
-    
-    main();
+
 }
-
-window.onload = init;
-
-// /**
-//  * Main program function
-//  */
-// async function main() {
-// 	//Get canvas data
-// 	var canvas = document.getElementById("main_canvas");
-// 	var gl = canvas.getContext("webgl2");
-// 	if (!gl) {
-// 		document.write("GL context not opened");
-// 		return;
-// 	}
-// 	utils.resizeCanvasToDisplaySize(gl.canvas);
-// 	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-// 	gl.clearColor(0.85, 0.85, 0.85, 1.0);
-// 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-// 	gl.enable(gl.DEPTH_TEST);
-
-// 	//Load models
-// 	models.loadModels();
-
-// 	//Initialize GLSL program
-// 	shadersGLSL.gl = gl;
-// 	await shadersGLSL.compileShaders();
-
-// 	//Draw the scene
-// 	drawScene();
-
-// }
-
-// /**
-//  * Draw the scene fram
-//  */
-// function drawScene() {
-// 	//Update objects matrices
-// 	models.updateTransformationMatrices();
-
-// 	//Send data to GLSL program
-// 	shadersGLSL.bindVertexArray();
-// 	shadersGLSL.sendUniformsToGpU();
-
-// 	//Draw the objects
-// 	shadersGLSL.drawObjects();
-
-// 	//Execute the function every frame
-// 	window.requestAnimationFrame(drawScene);
-// }
-
-
-// //main function is the program entry point
-// window.onload = main;
-
-// //Set the Event handler for key pressed 
-// utils.initInteraction();
