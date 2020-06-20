@@ -237,7 +237,6 @@ var utils = {
 	//*** Interaction UTILS	
 	initInteraction: function () {
 
-		var keys = [];
 
 		//KEY INTERACTION----------------------------------------------
 		var keyFunctionDown = function (e) {
@@ -325,11 +324,11 @@ var utils = {
 						break;
 				}
 			}
-		};
 
-		//LISTENERS----------------------------------------------------
-		window.addEventListener("keyup", keyFunctionUp, false);
-		window.addEventListener("keydown", keyFunctionDown, false);
+			//LISTENERS----------------------------------------------------
+			window.addEventListener("keyup", keyFunctionUp, false);
+			window.addEventListener("keydown", keyFunctionDown, false);
+		};
 	},
 
 
