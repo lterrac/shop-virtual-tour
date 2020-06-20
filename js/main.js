@@ -13,6 +13,7 @@ var cz = 0.0;
 
 var angle = 0.0;
 var elevation = 0.0;
+var roll = 0.0;
 var delta = 0.3;
 
 var perspectiveMatrix;
@@ -34,7 +35,7 @@ var textLocation;
 
 async function main() {
 
-	canvas = getCanvas();
+	getCanvas();
 
 	loadModels();
 
@@ -100,25 +101,43 @@ function getUniformLocations() {
 
 function createVAOs() {
 	furnitures.forEach(furniture => {
-		furniture.vao = gl.createVertexArray();
-		var vao = furniture.vao;
+		let vao = gl.createVertexArray();
 		gl.bindVertexArray(vao);
 
-		var positionBuffer = gl.createBuffer();
+		positionBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(furniture.vertices), gl.STATIC_DRAW);
 		gl.enableVertexAttribArray(positionAttributeLocation);
 		gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
-		var uvBuffer = gl.createBuffer();
+		uvBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(furniture.texturecoords), gl.STATIC_DRAW);
 		gl.enableVertexAttribArray(uvAttributeLocation);
 		gl.vertexAttribPointer(uvAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 
-		var indexBuffer = gl.createBuffer();
+		indexBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(furniture.indices), gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(furniture.indices), gl.STATIC_DRAW);
+    
+    let texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    let image = new Image();
+    image.src = "models/" + furniture.name + "/" + furniture.name + ".png";
+    console.log(image);
+    
+    image.onload = function () {
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.generateMipmap(gl.TEXTURE_2D);
+    };
+
+    furniture.vao = vao;
+    furniture.texture = texture;
 	});
 }
 
@@ -132,30 +151,16 @@ function loadModels() {
 	});
 }
 
-async function loadModel(furniture) {
-	await utils.get_json("models/" + furniture + "/" + furniture + ".json",
+async function loadModel(furnitureName) {
+	await utils.get_json("models/" + furnitureName + "/" + furnitureName + ".json",
 		function (model) {
-			furnitures.set(furniture, {});
-			furnitures.get(furniture).name = furniture;
-			furnitures.get(furniture).vertices = model.meshes[0].vertices;
-			furnitures.get(furniture).normals = model.meshes[0].normals;
-			furnitures.get(furniture).indices = [].concat.apply([], model.meshes[0].faces);
-			furnitures.get(furniture).texturecoords = model.meshes[0].texturecoords;
-
-			furnitures.get(furniture).texture = gl.createTexture();
-			var texture = furnitures.get(furniture).texture;
-			gl.bindTexture(gl.TEXTURE_2D, texture);
-
-			var image = new Image();
-			image.src = "models/" + furniture + "/" + furniture + ".png";
-			image.onload = function () {
-				gl.bindTexture(gl.TEXTURE_2D, texture);
-				gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-				gl.generateMipmap(gl.TEXTURE_2D);
-			};
+      furnitures.set(furnitureName, {});
+      let furniture = furnitures.get(furnitureName);
+      furniture.name = furnitureName;
+			furniture.vertices = model.meshes[0].vertices;
+			furniture.normals = model.meshes[0].normals;
+			furniture.indices = [].concat.apply([], model.meshes[0].faces);
+			furniture.texturecoords = model.meshes[0].texturecoords[0];
 		});
 }
 
@@ -166,15 +171,14 @@ function drawScene() {
 		sendUniformsToGPU();
 		drawElements();
 
-		utils.resizeCanvasToDisplaySize(gl.canvas);
-		gl.clearColor(0.85, 0.85, 0.85, 1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    utils.resizeCanvasToDisplaySize(gl.canvas);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-
-		gl.activeTexture(gl.TEXTURE0);
-		gl.uniform1i(textLocation, furniture.texture);
-
+    gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+    
+    gl.activeTexture(gl.TEXTURE0);
+    gl.uniform1i(textLocation, 0);
 		gl.bindVertexArray(furniture.vao);
 		gl.drawElements(gl.TRIANGLES, furniture.indices.length, gl.UNSIGNED_SHORT, 0);
 	});
