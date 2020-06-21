@@ -7,6 +7,7 @@
 var program;
 var gl;
 
+// control vars camera movement
 var cx = 0.0;
 var cy = 0.0;
 var cz = 0.0;
@@ -15,22 +16,67 @@ var angle = 0.0;
 var elevation = 0.0;
 var delta = 0.3;
 
+//control vars lights
+var ambientON = true;
+var directON = true;
+var pointLightON = true;
+var dirLightAlpha = -utils.degToRad(270);
+var dirLightBeta  = -utils.degToRad(270);
+
+//lights
+//ambient light
+var ambientLightColor = [80/255, 80/255, 80/255, 1.0];
+//point light
+var pointLightColor = [255/255, 244/255, 229/255, 1.0];
+var pointLightPosition = [2.0, 0.0, 0.0];
+var pointLightDecay = 1.0;
+var pointLightTarget = 10.0;
+//direct light
+var dirLightColor = [0.9, 1.0, 1.0, 1.0];
+var dirLightDirection = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
+	Math.sin(dirLightAlpha),
+	Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
+	];
+
+var diffuseLightColor = [230/255, 230/255 ,230/255, 1.0];
+var specularLightColor = [255/255, 255/255, 255/255, 1.0];
+
+var mixTextureColor = 0.9;
+
+
 var perspectiveMatrix;
 var viewMatrix;
 var worldMatrix;
 var viewWorldMatrix;
 var projectionMatrix;
+var normalMatrix;
 
 var furnituresNames = [
 	'bed'
 ];
 
 var furnitures = new Map();
+var shaders = new Map();
+var currentShader;
 
 var positionAttributeLocation;
+var normalAttributeLocation;
 var uvAttributeLocation;
 var matrixLocation;
+var worldMatrixLocation;
 var textLocation;
+var normalMatrixPositionHandle;
+//lights
+var ambientLightHandle;
+var diffuseLightHandle;
+var specularLightHandle;
+var mixTextureHandle;
+var pointLightPositionHandle;
+var pointLightColorHandle;
+var dirLightDirectionHandle;
+var dirLightColorHandle;
+var pointLightDecayHandle;
+var pointLightTargetHandle;
 
 async function main() {
 
@@ -79,7 +125,19 @@ async function compileAndLinkShaders() {
 	baseDir = window.location.href.replace(page, '');
 	shaderDir = baseDir + "shaders/";
 
-	await utils.loadFiles([shaderDir + 'vs.glsl', shaderDir + 'fs.glsl'], function (shaderText) {
+	//static texture
+	shaders.set('static', {});
+	shaders.get('static').vs = shaderDir + 'vs.glsl';
+	shaders.get('static').fs = shaderDir + 'fs.glsl';
+	//direct light
+	shaders.set('lambAmb', {});
+	shaders.get('lambAmb').vs = shaderDir + 'lambAmb_vs.glsl';
+	shaders.get('lambAmb').fs = shaderDir + 'lambAmb_fs.glsl';
+
+
+	currentShader = 'lambAmb';
+
+	await utils.loadFiles([shaders.get(currentShader).vs, shaders.get(currentShader).fs], function (shaderText) {
 		var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, shaderText[0]);
 		var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, shaderText[1]);
 		program = utils.createProgram(gl, vertexShader, fragmentShader);
@@ -89,13 +147,30 @@ async function compileAndLinkShaders() {
 }
 
 function getAttributeLocations() {
-	positionAttributeLocation = gl.getAttribLocation(program, "a_position");
-	uvAttributeLocation = gl.getAttribLocation(program, "a_uv");
+	positionAttributeLocation = gl.getAttribLocation(program, "in_position");
+	normalAttributeLocation = gl.getAttribLocation(program, "in_normal");
+	uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
 }
 
 function getUniformLocations() {
-	matrixLocation = gl.getUniformLocation(program, "matrix");
+	matrixLocation = gl.getUniformLocation(program, "pMatrix");
+	worldMatrixLocation = gl.getUniformLocation(program, "wMatrix");
 	textLocation = gl.getUniformLocation(program, "u_texture");
+	normalMatrixPositionHandle = gl.getUniformLocation(program,'nMatrix');
+	//lights uniforms
+	ambientLightHandle = gl.getUniformLocation(program,'ambientLightColor');
+	diffuseLightHandle = gl.getUniformLocation(program,'diffuseLightColor');
+	specularLightHandle = gl.getUniformLocation(program,'specularLightColor');
+	mixTextureHandle = gl.getUniformLocation(program,'mix_texture');
+
+	dirLightDirectionHandle = gl.getUniformLocation(program, 'dirLightDirection');
+	dirLightColorHandle = gl.getUniformLocation(program, 'dirLightColor');
+	pointLightColorHandle = gl.getUniformLocation(program, 'pointLightColor');
+	pointLightPositionHandle = gl.getUniformLocation(program, 'pointLightPos');
+	pointLightTarget = gl.getUniformLocation(program, 'pointLightTarget');
+	pointLightDecayHandle = gl.getUniformLocation(program, 'pointLightDecay');
+
+
 }
 
 function createVAOs() {
@@ -109,6 +184,13 @@ function createVAOs() {
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(furniture.vertices), gl.STATIC_DRAW);
 		gl.enableVertexAttribArray(positionAttributeLocation);
 		gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+
+		var normalBuffer = gl.createBuffer();
+  		gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+  		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(furniture.normals), gl.STATIC_DRAW);
+  		gl.enableVertexAttribArray(normalAttributeLocation);
+  		gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+
 
 		var uvBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
@@ -140,7 +222,7 @@ async function loadModel(furniture) {
 			furnitures.get(furniture).vertices = model.meshes[0].vertices;
 			furnitures.get(furniture).normals = model.meshes[0].normals;
 			furnitures.get(furniture).indices = [].concat.apply([], model.meshes[0].faces);
-			furnitures.get(furniture).texturecoords = model.meshes[0].texturecoords;
+			furnitures.get(furniture).texturecoords = model.meshes[0].texturecoords[0];
 
 			furnitures.get(furniture).texture = gl.createTexture();
 			var texture = furnitures.get(furniture).texture;
@@ -169,8 +251,29 @@ function drawScene() {
 		utils.resizeCanvasToDisplaySize(gl.canvas);
 		gl.clearColor(0.85, 0.85, 0.85, 1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
+		
+		//projection matrix
 		gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+		//normal matrix
+		gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(normalMatrix));
+		//world matrix
+		gl.uniformMatrix4fv(worldMatrixLocation, gl.FALSE, utils.transposeMatrix(worldMatrix));
+		//ambient light
+		gl.uniform4fv(ambientLightHandle,  ambientLightColor);
+		//brdf
+		gl.uniform4fv(diffuseLightHandle,  diffuseLightColor);
+		gl.uniform4fv(specularLightHandle,  specularLightColor);
+		gl.uniform1f(mixTextureHandle, mixTextureColor);
+		//directional light
+		gl.uniform4fv(dirLightColorHandle,  dirLightColor);
+		gl.uniform3fv(dirLightDirectionHandle,  dirLightDirection);
+		//point light
+		gl.uniform4fv(pointLightColorHandle,pointLightColor);
+		gl.uniform3fv(pointLightPositionHandle,pointLightPosition);  
+		gl.uniform1f(pointLightDecayHandle,pointLightDecay);
+		gl.uniform1f(pointLightTargetHandle,pointLightTarget);
+
+
 
 		gl.activeTexture(gl.TEXTURE0);
 		gl.uniform1i(textLocation, furniture.texture);
@@ -195,6 +298,7 @@ function updateView() {
 
 	worldMatrix = utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5);
 	viewMatrix = utils.MakeView(cx, cy, cz, elevation, angle);
+	normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldMatrix));
 
 }
 

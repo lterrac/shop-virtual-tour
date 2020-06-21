@@ -56,7 +56,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
     const expandFullScreen = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      console.log(canvas.width+" "+window.innerWidth);
+      
         
     };
     expandFullScreen();
@@ -250,10 +250,10 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 			if (e.keyCode == 40) {	// Down arrow
 				cz+=delta;
 			}
-			if (e.keyCode == 107) {	// Add
+			if (e.keyCode == 187) {	// Add
 				cy+=delta;
 			}
-			if (e.keyCode == 109) {	// Subtract
+			if (e.keyCode == 189) {	// Subtract
 				cy-=delta;
 			}
 			
@@ -269,12 +269,40 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 			if (e.keyCode == 83) {	// s
 				elevation-=delta*10.0;
 			}
-			
+			//lights commands
+			if(e.keyCode == 49){	// 1
+				if(ambientON == false){
+					ambientLightColor = [145/255, 145/255, 145/255, 1.0];
+					ambientON = true;
+				} else {
+					ambientLightColor = [0.0, 0.0, 0.0, 1.0];
+					ambientON = false;
+				}
+			}
+			if(e.keyCode == 50){	// 2
+				if(directON == false){
+					dirLightColor = [0.1, 1.0, 1.0, 1.0];
+					directON = true;
+				} else {
+					dirLightColor = [0.0, 0.0, 0.0, 1.0];
+					directON = false;
+				}
+			}
+			if(e.keyCode == 51){	// 3
+				if(pointLightON == false){
+					pointLightColor = [255/255, 244/255, 229/255, 1.0];
+					pointLightON = true;
+					console.log('point on');
+				} else {
+					pointLightColor = [0.0, 0.0, 0.0, 1.0];
+					pointLightON = false;
+					console.log('point off');
+				}
+			}
 		}
 		//'window' is a JavaScript object (if "canvas", it will not work)
 		window.addEventListener("keyup", keyFunction, false);		
 	},
-	
 	
 	
 	
