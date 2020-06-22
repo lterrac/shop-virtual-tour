@@ -74,14 +74,14 @@ var utils = {
 		var json = await response.json();
 		func(json);
 	},
-	get_objstr: async function (url) {
+	get_objstr: async function (url, func) {
 		var response = await fetch(url);
 		if (!response.ok) {
 			alert('Network response was not ok');
 			return;
 		}
 		var text = await response.text();
-		return text;
+		func(text);
 	},
 
 	//function to convert decimal value of colors 
@@ -237,7 +237,7 @@ var utils = {
 	//*** Interaction UTILS	
 	initInteraction: function () {
 
-
+		var keys = [];
 		//KEY INTERACTION----------------------------------------------
 		var keyFunctionDown = function (e) {
 			if (!keys[e.keyCode]) {
@@ -324,11 +324,10 @@ var utils = {
 						break;
 				}
 			}
-
-			//LISTENERS----------------------------------------------------
-			window.addEventListener("keyup", keyFunctionUp, false);
-			window.addEventListener("keydown", keyFunctionDown, false);
 		};
+		//LISTENERS----------------------------------------------------
+		window.addEventListener("keyup", keyFunctionUp, false);
+		window.addEventListener("keydown", keyFunctionDown, false);
 	},
 
 
