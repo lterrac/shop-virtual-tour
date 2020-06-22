@@ -20,20 +20,18 @@ var projectionMatrix;
 var textureIndex = 0;
 
 var furnituresConfig = new Map([
-  // ['bed', {
-  //   type: 'JSON',
-  //   imageType: '.png',
-  //   initCoords: utils.MakeTranslateMatrix(- 1.0, 0.0, - 0.5),
-  //   initScale: utils.MakeScaleMatrix(0.6),
-  //   initRotation: utils.MakeRotateYMatrix(30),
-  //   textureNumber: 0,
-  // }],
+  ['bed', {
+    type: 'JSON',
+    imageType: '.png',
+    initCoords: utils.MakeTranslateMatrix(- 1.0, 0.0, - 0.5),
+    initScale: utils.MakeScaleMatrix(0.6),
+    initRotation: utils.MakeRotateYMatrix(30),
+  }],
   ['Room', {
     type: 'JSON',
     initCoords: utils.MakeTranslateMatrix(0.0, 0.0, 0.0),
     initScale: utils.MakeScaleMatrix(1),
     initRotation: utils.MakeRotateYMatrix(0),
-    textureNumber: 1,
   }],
 ]);
 
@@ -208,63 +206,15 @@ function putAttributesOnGPU() {
 
 function loadModels() {
   furnituresConfig.forEach((furnitureConfig, furnitureName) => {
-    console.log("LOAD");
     loadModel(furnitureName, furnitureConfig);
   });
 }
 
 async function loadModel(furnitureName, furnitureConfig) {
-  // switch (furnitureConfig.type) {
-  //   case 'JSON':
-  //     console.log("JSON " + furnitureName);
-
-  //     await utils.get_json("models/" + furnitureName + "/" + furnitureName + ".json",
-  //       function (model) {
-
-
-  //         furnitures.set(furnitureName, new Furniture(
-  //           furnitureName,
-  //           model.meshes[0].vertices,
-  //           model.meshes[0].normals,
-  //           [].concat.apply([], model.meshes[0].faces),
-  //           model.meshes[0].texturecoords[0]
-  //         ))
-  //       });
-  //     break;
-  //   case 'OBJ':
-
-  //     console.log("OBJ " + furnitureName);
-  //     await utils.get_objstr("models/" + furnitureName + "/" + furnitureName + ".json",
-  //       function (model) {
-  //         let modelMesh = new OBJ.Mesh(model);
-  //         console.log(model);
-  //         console.log(modelMesh);
-  //         console.log(modelMesh.vertices);
-
-
-  //         furnitures.set(furnitureName, new Furniture(
-  //           furnitureName,
-  //           modelMesh.vertices,
-  //           modelMesh.vertexNormals,
-  //           modelMesh.indices,
-  //           modelMesh.textures
-  //         ))
-  //       });
-  //     break;
-  // };
-
   let model;
   await utils.get_json("models/" + furnitureName + "/" + furnitureName + ".json",
     function (parsedModel) {
       model = parsedModel;
-
-      // furnitures.set(furnitureName, new Furniture(
-      //   furnitureName,
-      //   parsedModel.meshes[0].vertices,
-      //   parsedModel.meshes[0].normals,
-      //   [].concat.apply([], parsedModel.meshes[0].faces),
-      //   parsedModel.meshes[0].texturecoords[0]
-      // ))
     });
 
   //Parse like hell
@@ -285,7 +235,6 @@ async function loadModel(furnitureName, furnitureConfig) {
     component.indices = [].concat.apply([], model.meshes[parsedChildren.meshes].faces);
     //Get textures
     component.texturecoords = model.meshes[parsedChildren.meshes].texturecoords[0];
-    console.log(model.meshes[parsedChildren.meshes].materialindex);
 
     model.materials[model.meshes[parsedChildren.meshes].materialindex].properties.forEach(materialProperty => {
       if (materialProperty.key == "$tex.file") {
@@ -297,13 +246,14 @@ async function loadModel(furnitureName, furnitureConfig) {
 
     console.log(component);
 
-
     let texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
     let image = new Image();
     image.src = "models/" + component.name + "/" + component.textureImageName;
-    console.log(image);
+    console.log("activating texture number " + component.textureIndex + " for texture " + component.textureImageName);
+    gl.activeTexture(gl.TEXTURE0 + component.textureIndex);
+
 
     image.onload = function () {
       gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -315,26 +265,18 @@ async function loadModel(furnitureName, furnitureConfig) {
     };
 
     component.texture = texture;
-
-
     furniture.components.push(component);
   });
-
-  // furnitures.get(furnitureName).localMatrix = utils.multiplyMatrices(
-  //   utils.multiplyMatrices(
-  //     utils.multiplyMatrices(
-  //       furnitureConfig.initCoords,
-  //       furnitureConfig.initRotation
-  //     ),
-  //     furnitureConfig.initScale
-  //   ),
-  //   utils.identityMatrix
-  // );
 
   //#TODO DEFINE WORLD MATRIX
 }
 
 function drawScene() {
+
+  utils.resizeCanvasToDisplaySize(gl.canvas);
+  gl.clearColor(0, 0, 0, 0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
   furnitures.forEach(furniture => {
     furniture.components.forEach(component => {
 
@@ -343,17 +285,15 @@ function drawScene() {
       sendUniformsToGPU();
       drawElements();
 
-      utils.resizeCanvasToDisplaySize(gl.canvas);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
 
       gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-
-      gl.activeTexture(gl.TEXTURE0 + component.textureIndex);
-      //console.log("enabling " + component.textureIndex);
+      //gl.uniform1i(textLocation, 0);
+      gl.bindTexture(gl.TEXTURE_2D, component.texture);
+      gl.uniform1i(textLocation, component.textureIndex);
       
-
-      gl.uniform1i(textLocation, 0);
+      console.log("enabling " + component.name + " " + component.textureImageName + " " + component.textureIndex);
+      
       gl.bindVertexArray(component.vao);
       gl.drawElements(gl.TRIANGLES, component.indices.length, gl.UNSIGNED_SHORT, 0);
     });
