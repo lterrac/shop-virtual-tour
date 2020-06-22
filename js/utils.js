@@ -299,6 +299,17 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 					console.log('point off');
 				}
 			}
+			if(e.keyCode == 52){	// 4
+				if(spotlights.get('spotLight0').On == false){
+					spotlights.get('spotLight0').color = [230/255, 230/255 ,230/255, 1.0];
+					spotlights.get('spotLight0').On = true;
+					console.log('spot0 on');
+				} else {
+					spotlights.get('spotLight0').color = [0.0, 0.0, 0.0, 1.0];
+					spotlights.get('spotLight0').On = false;
+					console.log('spot0 off');
+				}
+			}
 		}
 		//'window' is a JavaScript object (if "canvas", it will not work)
 		window.addEventListener("keyup", keyFunction, false);		

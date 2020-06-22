@@ -17,31 +17,32 @@ var elevation = 0.0;
 var delta = 0.3;
 
 //control vars lights
-var ambientON = true;
-var directON = true;
-var pointLightON = true;
-var dirLightAlpha = -utils.degToRad(270);
-var dirLightBeta  = -utils.degToRad(270);
+var ambientON;
+var directON;
+var pointLightON;
+var numOfSpotlights;
+var dirLightAlpha;
+var dirLightBeta;
 
 //lights
 //ambient light
-var ambientLightColor = [80/255, 80/255, 80/255, 1.0];
+var ambientLightColor;
 //point light
-var pointLightColor = [255/255, 244/255, 229/255, 1.0];
-var pointLightPosition = [2.0, 0.0, 0.0];
-var pointLightDecay = 1.0;
-var pointLightTarget = 10.0;
+var pointLightColor;
+var pointLightPosition;
+var pointLightDecay;
+var pointLightTarget;
+//spot lights
+var spotlights = new Map();
 //direct light
-var dirLightColor = [0.9, 1.0, 1.0, 1.0];
-var dirLightDirection = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
-	Math.sin(dirLightAlpha),
-	Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
-	];
+var dirLightColor;
+var dirLightDirection;
 
-var diffuseLightColor = [230/255, 230/255 ,230/255, 1.0];
-var specularLightColor = [255/255, 255/255, 255/255, 1.0];
 
-var mixTextureColor = 0.9;
+var diffuseLightColor;
+var specularLightColor;
+
+var mixTextureColor;
 
 
 var perspectiveMatrix;
@@ -108,6 +109,8 @@ function getCanvas() {
 
 async function initializeProgram() {
 
+	initParams();
+
 	await compileAndLinkShaders();
 
 	getAttributeLocations();
@@ -117,6 +120,53 @@ async function initializeProgram() {
 	createVAOs();
 
 	putAttributesOnGPU();
+}
+
+function initParams(){
+	//control vars lights
+	ambientON = true;
+	directON = true;
+	pointLightON = true;
+	numOfSpotlights = 1;
+	dirLightAlpha = -utils.degToRad(270);
+	dirLightBeta  = -utils.degToRad(270);
+
+	//lights
+	//ambient light
+	ambientLightColor = [80/255, 80/255, 80/255, 1.0];
+	//point light
+	pointLightColor = [255/255, 244/255, 229/255, 1.0];
+	pointLightPosition = [2.0, 4.0, 0.0];
+	pointLightDecay = 1.0;
+	pointLightTarget = 2.0;
+	//spot lights
+	spotlights = new Map();
+	for(i=0; i<numOfSpotlights;i++){
+		spotlights.set('spotLight'+i,{});
+		spotlights.get('spotLight'+i).name = 'spotLight'+i;
+		spotlights.get('spotLight'+i).color = [230/255, 230/255 ,230/255, 1.0];
+		spotlights.get('spotLight'+i).position = [0.0, 0.0, 0.0];
+		spotlights.get('spotLight'+i).direction = [1.0, 0.0, 0.0];
+		spotlights.get('spotLight'+i).decay = 1.0;
+		spotlights.get('spotLight'+i).target = 1.0;
+		spotlights.get('spotLight'+i).coneIn = 30.0;
+		spotlights.get('spotLight'+i).coneOut = 60.0;
+		spotlights.get('spotLight'+i).On = true;
+
+	}
+	//direct light
+	dirLightColor = [0.9, 1.0, 1.0, 1.0];
+	dirLightDirection = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
+		Math.sin(dirLightAlpha),
+		Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
+	];
+
+
+	diffuseLightColor = [230/255, 230/255 ,230/255, 1.0]; //warm white
+	specularLightColor = [255/255, 255/255, 255/255, 1.0]; //white
+
+	mixTextureColor = 0.9; //percentage of texture color in the final projection
+
 }
 
 async function compileAndLinkShaders() {
@@ -169,6 +219,17 @@ function getUniformLocations() {
 	pointLightPositionHandle = gl.getUniformLocation(program, 'pointLightPos');
 	pointLightTarget = gl.getUniformLocation(program, 'pointLightTarget');
 	pointLightDecayHandle = gl.getUniformLocation(program, 'pointLightDecay');
+	spotlights.forEach(spotlight => {
+		var name = spotlight.name;
+		spotlight.colorHandle = gl.getUniformLocation(program, name+'Color');
+		spotlight.positionHandle = gl.getUniformLocation(program, name+'Pos');
+		spotlight.directionHandle = gl.getUniformLocation(program, name+'Dir');
+		spotlight.decayHandle = gl.getUniformLocation(program, name+'Decay');
+		spotlight.targetHandle = gl.getUniformLocation(program, name+'Target');
+		spotlight.coneInHandle = gl.getUniformLocation(program, name+'ConeIn');
+		spotlight.coneOutHandle = gl.getUniformLocation(program, name+'ConeOut');
+
+	});
 
 
 }
@@ -258,29 +319,40 @@ function drawScene() {
 		gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(normalMatrix));
 		//world matrix
 		gl.uniformMatrix4fv(worldMatrixLocation, gl.FALSE, utils.transposeMatrix(worldMatrix));
-		//ambient light
-		gl.uniform4fv(ambientLightHandle,  ambientLightColor);
-		//brdf
-		gl.uniform4fv(diffuseLightHandle,  diffuseLightColor);
-		gl.uniform4fv(specularLightHandle,  specularLightColor);
-		gl.uniform1f(mixTextureHandle, mixTextureColor);
-		//directional light
-		gl.uniform4fv(dirLightColorHandle,  dirLightColor);
-		gl.uniform3fv(dirLightDirectionHandle,  dirLightDirection);
-		//point light
-		gl.uniform4fv(pointLightColorHandle,pointLightColor);
-		gl.uniform3fv(pointLightPositionHandle,pointLightPosition);  
-		gl.uniform1f(pointLightDecayHandle,pointLightDecay);
-		gl.uniform1f(pointLightTargetHandle,pointLightTarget);
-
-
 
 		gl.activeTexture(gl.TEXTURE0);
 		gl.uniform1i(textLocation, furniture.texture);
 
 		gl.bindVertexArray(furniture.vao);
 		gl.drawElements(gl.TRIANGLES, furniture.indices.length, gl.UNSIGNED_SHORT, 0);
+		
 	});
+
+	//ambient light
+	gl.uniform4fv(ambientLightHandle, ambientLightColor);
+	//brdf
+	gl.uniform4fv(diffuseLightHandle, diffuseLightColor);
+	gl.uniform4fv(specularLightHandle, specularLightColor);
+	gl.uniform1f(mixTextureHandle, mixTextureColor);
+	//directional light
+	gl.uniform4fv(dirLightColorHandle, dirLightColor);
+	gl.uniform3fv(dirLightDirectionHandle, dirLightDirection);
+	//point light
+	gl.uniform4fv(pointLightColorHandle, pointLightColor);
+	gl.uniform3fv(pointLightPositionHandle, pointLightPosition);
+	gl.uniform1f(pointLightDecayHandle, pointLightDecay);
+	gl.uniform1f(pointLightTargetHandle, pointLightTarget);
+	//spotlights
+	for(i=0; i < numOfSpotlights; i++){
+		var spotlight = spotlights.get('spotLight'+i);
+		gl.uniform4fv(spotlight.colorHandle, spotlight.color);
+		gl.uniform3fv(spotlight.positionHandle, spotlight.position);
+		gl.uniform3fv(spotlight.directionHandle, spotlight.direction);
+		gl.uniform1f(spotlight.decayHandle, spotlight.decay);
+		gl.uniform1f(spotlight.targetHandle, spotlight.target);
+		gl.uniform1f(spotlight.coneInHandle, spotlight.coneIn);
+		gl.uniform1f(spotlight.coneOutHandle, spotlight.coneOut);
+	}
 
 	window.requestAnimationFrame(drawScene);
 }
@@ -296,7 +368,7 @@ function updateTransformationMatrices() {
 
 function updateView() {
 
-	worldMatrix = utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5);
+	worldMatrix = utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
 	viewMatrix = utils.MakeView(cx, cy, cz, elevation, angle);
 	normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldMatrix));
 
