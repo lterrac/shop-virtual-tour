@@ -8,12 +8,12 @@ var program;
 var gl;
 
 // control vars camera movement
-var cx = 0.0;
-var cy = 0.0;
-var cz = 0.0;
+var cx = 0.5;
+var cy = 2.0;
+var cz = 1.0;
 
 var angle = 0.0;
-var elevation = 0.0;
+var elevation = -10.0;
 var delta = 0.3;
 
 //control vars lights
@@ -41,6 +41,7 @@ var dirLightDirection;
 
 var diffuseLightColor;
 var specularLightColor;
+var specShine;
 
 var mixTextureColor;
 
@@ -67,10 +68,12 @@ var matrixLocation;
 var worldMatrixLocation;
 var textLocation;
 var normalMatrixPositionHandle;
+var eyePosHandle;
 //lights
 var ambientLightHandle;
 var diffuseLightHandle;
 var specularLightHandle;
+var specShineHandle;
 var mixTextureHandle;
 var pointLightPositionHandle;
 var pointLightColorHandle;
@@ -135,18 +138,18 @@ function initParams(){
 	//ambient light
 	ambientLightColor = [80/255, 80/255, 80/255, 1.0];
 	//point light
-	pointLightColor = [255/255, 244/255, 229/255, 1.0];
-	pointLightPosition = [2.0, 4.0, 0.0];
+	pointLightColor = [254/255, 244/255, 229/255, 1.0];
+	pointLightPosition = [-0.1, 1.0, 2.0];
 	pointLightDecay = 1.0;
-	pointLightTarget = 2.0;
+	pointLightTarget = 1.0;
 	//spot lights
 	spotlights = new Map();
 	for(i=0; i<numOfSpotlights;i++){
 		spotlights.set('spotLight'+i,{});
 		spotlights.get('spotLight'+i).name = 'spotLight'+i;
 		spotlights.get('spotLight'+i).color = [230/255, 230/255 ,230/255, 1.0];
-		spotlights.get('spotLight'+i).position = [0.0, 0.0, 0.0];
-		spotlights.get('spotLight'+i).direction = [1.0, 0.0, 0.0];
+		spotlights.get('spotLight'+i).position = [1.0, 1.0, 0.0];
+		spotlights.get('spotLight'+i).direction = [1.0, 0.1, 0.1];
 		spotlights.get('spotLight'+i).decay = 1.0;
 		spotlights.get('spotLight'+i).target = 1.0;
 		spotlights.get('spotLight'+i).coneIn = 30.0;
@@ -163,7 +166,8 @@ function initParams(){
 
 
 	diffuseLightColor = [230/255, 230/255 ,230/255, 1.0]; //warm white
-	specularLightColor = [255/255, 255/255, 255/255, 1.0]; //white
+	specularLightColor = [250/255, 250/255, 250/255, 1.0]; //white
+	specShine = 100.0;
 
 	mixTextureColor = 0.9; //percentage of texture color in the final projection
 
@@ -207,17 +211,19 @@ function getUniformLocations() {
 	worldMatrixLocation = gl.getUniformLocation(program, "wMatrix");
 	textLocation = gl.getUniformLocation(program, "u_texture");
 	normalMatrixPositionHandle = gl.getUniformLocation(program,'nMatrix');
+	eyePosHandle = gl.getUniformLocation(program,'eyePos');
 	//lights uniforms
 	ambientLightHandle = gl.getUniformLocation(program,'ambientLightColor');
 	diffuseLightHandle = gl.getUniformLocation(program,'diffuseLightColor');
 	specularLightHandle = gl.getUniformLocation(program,'specularLightColor');
+	specShineHandle = gl.getUniformLocation(program, 'specShine');
 	mixTextureHandle = gl.getUniformLocation(program,'mix_texture');
 
 	dirLightDirectionHandle = gl.getUniformLocation(program, 'dirLightDirection');
 	dirLightColorHandle = gl.getUniformLocation(program, 'dirLightColor');
 	pointLightColorHandle = gl.getUniformLocation(program, 'pointLightColor');
 	pointLightPositionHandle = gl.getUniformLocation(program, 'pointLightPos');
-	pointLightTarget = gl.getUniformLocation(program, 'pointLightTarget');
+	pointLightTargetHandle = gl.getUniformLocation(program, 'pointLightTarget');
 	pointLightDecayHandle = gl.getUniformLocation(program, 'pointLightDecay');
 	spotlights.forEach(spotlight => {
 		var name = spotlight.name;
@@ -328,11 +334,13 @@ function drawScene() {
 		
 	});
 
+	gl.uniform3fv(eyePosHandle,[cx,cy,cz]);
 	//ambient light
 	gl.uniform4fv(ambientLightHandle, ambientLightColor);
 	//brdf
 	gl.uniform4fv(diffuseLightHandle, diffuseLightColor);
 	gl.uniform4fv(specularLightHandle, specularLightColor);
+	gl.uniform1f(specShineHandle, specShine);
 	gl.uniform1f(mixTextureHandle, mixTextureColor);
 	//directional light
 	gl.uniform4fv(dirLightColorHandle, dirLightColor);
