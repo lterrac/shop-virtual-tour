@@ -21,6 +21,7 @@ var ambientON;
 var directON;
 var pointLightON;
 var numOfSpotlights;
+var specularType;
 var dirLightAlpha;
 var dirLightBeta;
 
@@ -70,6 +71,7 @@ var textLocation;
 var normalMatrixPositionHandle;
 var eyePosHandle;
 //lights
+var specularTypeHandle;
 var ambientLightHandle;
 var diffuseLightHandle;
 var specularLightHandle;
@@ -127,6 +129,7 @@ async function initializeProgram() {
 
 function initParams(){
 	//control vars lights
+	specularType = [1, 0];
 	ambientON = true;
 	directON = true;
 	pointLightON = true;
@@ -136,7 +139,7 @@ function initParams(){
 
 	//lights
 	//ambient light
-	ambientLightColor = [80/255, 80/255, 80/255, 1.0];
+	ambientLightColor = [50/255, 50/255, 50/255, 1.0];
 	//point light
 	pointLightColor = [254/255, 244/255, 229/255, 1.0];
 	pointLightPosition = [-0.1, 1.0, 2.0];
@@ -217,6 +220,7 @@ function getUniformLocations() {
 	diffuseLightHandle = gl.getUniformLocation(program,'diffuseLightColor');
 	specularLightHandle = gl.getUniformLocation(program,'specularLightColor');
 	specShineHandle = gl.getUniformLocation(program, 'specShine');
+	specularTypeHandle = gl.getUniformLocation(program, 'specularType');
 	mixTextureHandle = gl.getUniformLocation(program,'mix_texture');
 
 	dirLightDirectionHandle = gl.getUniformLocation(program, 'dirLightDirection');
@@ -342,6 +346,7 @@ function drawScene() {
 	gl.uniform4fv(specularLightHandle, specularLightColor);
 	gl.uniform1f(specShineHandle, specShine);
 	gl.uniform1f(mixTextureHandle, mixTextureColor);
+	gl.uniform2fv(specularTypeHandle,specularType);
 	//directional light
 	gl.uniform4fv(dirLightColorHandle, dirLightColor);
 	gl.uniform3fv(dirLightDirectionHandle, dirLightDirection);

@@ -272,7 +272,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 			//lights commands
 			if(e.keyCode == 49){	// 1
 				if(ambientON == false){
-					ambientLightColor = [145/255, 145/255, 145/255, 1.0];
+					ambientLightColor = [50/255, 50/255, 50/255, 1.0];
 					ambientON = true;
 				} else {
 					ambientLightColor = [0.0, 0.0, 0.0, 1.0];
@@ -283,9 +283,11 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 				if(directON == false){
 					dirLightColor = [0.1, 1.0, 1.0, 1.0];
 					directON = true;
+					console.log('direct on');
 				} else {
 					dirLightColor = [0.0, 0.0, 0.0, 1.0];
 					directON = false;
+					console.log('direct off');
 				}
 			}
 			if(e.keyCode == 51){	// 3
@@ -308,6 +310,16 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 					spotlights.get('spotLight0').color = [0.0, 0.0, 0.0, 1.0];
 					spotlights.get('spotLight0').On = false;
 					console.log('spot0 off');
+				}
+			}
+			//change specular model type
+			if(e.keyCode == 76){	// l
+				if(specularType[0] == 1.0){
+					specularType = [0.0, 1.0];
+					console.log('Other specular model');
+				} else if(specularType[1] == 1.0){
+					specularType = [1.0, 0.0];
+					console.log('Phong specular model');
 				}
 			}
 		}

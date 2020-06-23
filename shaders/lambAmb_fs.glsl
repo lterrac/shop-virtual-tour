@@ -14,6 +14,7 @@ uniform vec4 ambientLightColor;
 uniform vec4 diffuseLightColor;
 uniform vec4 specularLightColor;
 uniform float specShine;
+uniform vec2 specularType;
 uniform float mix_texture;
 //direct light
 uniform vec3 dirLightDirection;
@@ -32,6 +33,7 @@ uniform float spotLight0Target;
 uniform float spotLight0ConeIn;
 uniform float spotLight0ConeOut;
 
+//type of lights
 vec4 compSpotLightColor(vec4 lightColor,vec3 lightPos, vec3 lightDir,float decay, float target, float coneIn, float coneOut){
   float cosOut = cos(radians(spotLight0ConeOut / 2.0));
 	float cosIn = cos(radians(spotLight0ConeOut * spotLight0ConeIn / 2.0));
@@ -49,6 +51,7 @@ vec4 compPointLightColor(vec4 lightColor,vec3 lightPos, float decay, float targe
   return res;
 }
 
+//BRDFs
 vec4 diffuseLambert(vec4 lightColor, vec3 normal, vec3 lightDir){
   vec4 lambert = clamp(dot(normal,lightDir),0.0,1.0) * lightColor;
   return lambert;
@@ -58,7 +61,7 @@ vec4 compSpecular(vec3 lightDir, vec4 lightCol, vec3 normal, vec3 eyedir){
   // Phong
 	vec3 reflection = -reflect(lightDir, normal);
 	vec4 specularPhong = lightCol * pow(max(dot(reflection, eyedir), 0.0), specShine);
-	return specularPhong;
+	return (specularPhong *  specularType.x);
 }
 
 void main() {
