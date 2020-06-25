@@ -1,11 +1,19 @@
 #version 300 es
 
-in vec3 a_position;
-in vec2 a_uv;
-out vec2 uvFS;
+in vec3 in_position;
+in vec3 in_normal;
+in vec2 in_uv;
 
-uniform mat4 matrix; 
+out vec2 fs_uv;
+out vec3 fs_normal;
+out vec3 fs_pos;
+
+uniform mat4 pMatrix;
+uniform mat4 nMatrix; 
+uniform mat4 wMatrix;
+
 void main() {
-  uvFS = a_uv;
-  gl_Position = matrix * vec4(a_position,1.0);
+  fs_uv = in_uv;
+  fs_normal = mat3(nMatrix) * in_normal;
+  gl_Position = pMatrix * vec4(in_position,1.0);
 }

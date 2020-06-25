@@ -298,6 +298,48 @@ var utils = {
 					case 40:
 						cz = cz + 0.2;
 						break;
+					case 49:
+						if (ambientON == false) {
+							ambientLightColor = [50 / 255, 50 / 255, 50 / 255, 1.0];
+							ambientON = true;
+						} else {
+							ambientLightColor = [0.0, 0.0, 0.0, 1.0];
+							ambientON = false;
+						}
+						break;
+					case 50:
+						if (directON == false) {
+							dirLightColor = [0.1, 1.0, 1.0, 1.0];
+							directON = true;
+							console.log('direct on');
+						} else {
+							dirLightColor = [0.0, 0.0, 0.0, 1.0];
+							directON = false;
+							console.log('direct off');
+						}
+						break;
+					case 51:
+						if (pointLightON == false) {
+							pointLightColor = [255 / 255, 244 / 255, 229 / 255, 1.0];
+							pointLightON = true;
+							console.log('point on');
+						} else {
+							pointLightColor = [0.0, 0.0, 0.0, 1.0];
+							pointLightON = false;
+							console.log('point off');
+						}
+						break;
+					case 52:
+						if (spotlights.get('spotLight0').On == false) {
+							spotlights.get('spotLight0').color = [230 / 255, 230 / 255, 230 / 255, 1.0];
+							spotlights.get('spotLight0').On = true;
+							console.log('spot0 on');
+						} else {
+							spotlights.get('spotLight0').color = [0.0, 0.0, 0.0, 1.0];
+							spotlights.get('spotLight0').On = false;
+							console.log('spot0 off');
+						}
+						break;
 					case 81:
 						roll = roll - 0.2;
 						break;
