@@ -373,7 +373,30 @@ var utils = {
 	},
 
 
-
+	//mouse event listeners
+	doMouseDown: function (event) {
+		lastMouseX = event.pageX;
+		lastMouseY = event.pageY;
+		mouseState = true;
+	},
+	doMouseUp: function(event) {
+		lastMouseX = -100;
+		lastMouseY = -100;
+		mouseState = false;
+	},
+	doMouseMove : function (event) {
+		if(mouseState) {
+			var dx = event.pageX - lastMouseX;
+			var dy = lastMouseY - event.pageY;
+			lastMouseX = event.pageX;
+			lastMouseY = event.pageY;
+			
+			if((dx != 0) || (dy != 0)) {
+				angle = angle - 0.3 * dx;
+				elevation = elevation - 0.3 * dy;
+			}
+		}
+	},
 
 
 	//*** MATH LIBRARY

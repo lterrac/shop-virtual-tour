@@ -20,6 +20,8 @@ var roll = 0.0;
  * Angular delta for camera
  */
 var delta = 0.3;
+var mouseState = false;
+var lastMouseX = -100, lastMouseY = -100;
 
 //control vars lights
 var ambientON;
@@ -87,7 +89,6 @@ var dirLightDirectionHandle;
 var dirLightColorHandle;
 var pointLightDecayHandle;
 var pointLightTargetHandle;
-
 
 /**
  * Furnitures initial configuration
@@ -228,6 +229,11 @@ async function main() {
 
 function getCanvas() {
     canvas = document.getElementById("main_canvas");
+
+    canvas.addEventListener("mousedown", utils.doMouseDown, false);
+    canvas.addEventListener("mouseup", utils.doMouseUp, false);
+    canvas.addEventListener("mousemove", utils.doMouseMove, false);
+
     gl = canvas.getContext("webgl2");
     if (!gl) {
         document.write("GL context not opened");
