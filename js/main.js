@@ -57,6 +57,7 @@ var viewMatrix;
 var worldMatrix;
 var viewWorldMatrix;
 var projectionMatrix;
+var viewProjectionMatrix;
 var normalMatrix;
 
 var shaders = new Map();
@@ -97,15 +98,15 @@ var furnituresConfig = [
         type: 'JSON',
         imageType: '.png',
         initCoords: utils.MakeTranslateMatrix(- 1.0, 0.0, - 0.5),
-        initScale: utils.MakeScaleMatrix(0.6),
+        initScale: utils.MakeScaleMatrix(0.8),
         initRotation: utils.MakeRotateYMatrix(30),
     },
     {
         name: 'bed_2',
         type: 'JSON',
         imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix(- 3.0, 1.0, - 2.5),
-        initScale: utils.MakeScaleMatrix(0.6),
+        initCoords: utils.MakeTranslateMatrix(- 3.0, 0.0, - 2.5),
+        initScale: utils.MakeScaleMatrix(0.9),
         initRotation: utils.MakeRotateYMatrix(30),
     },
     {
@@ -113,8 +114,16 @@ var furnituresConfig = [
         type: 'JSON',
         imageType: '.png',
         initCoords: utils.MakeTranslateMatrix(3.0, 1.0, - 2.5),
-        initScale: utils.MakeScaleMatrix(0.6),
-        initRotation: utils.MakeRotateYMatrix(30),
+        initScale: utils.MakeScaleMatrix(1),
+        initRotation: utils.MakeRotateYMatrix(0),
+    },
+    {
+        name: 'book-shelf',
+        type: 'JSON',
+        imageType: '.jpg',
+        initCoords: utils.MakeTranslateMatrix(-9.0, 0.0, - 2.5),
+        initScale: utils.MakeScaleMatrix(0.8),
+        initRotation: utils.MakeRotateYMatrix(0),
     },
     // {
     //     name: 'chair',
@@ -144,7 +153,6 @@ var furnituresConfig = [
  */
 class Furniture {
     constructor() {
-        this.components = [];
         this.children = [];
         this.localMatrix = utils.identityMatrix();
         this.worldMatrix = utils.identityMatrix();
@@ -164,17 +172,9 @@ class Furniture {
             parent.children.push(this);
         }
         this.parent = parent;
-    };
-
-
-    updateWorldMatrix(matrix) {
-        this.components.forEach(component => {
-            component.updateWorldMatrix(matrix);
-        });
     }
-}
 
-class FurnitureComponent {
+
     updateWorldMatrix(matrix) {
         if (matrix) {
             // a matrix was passed in so do the math
@@ -182,16 +182,16 @@ class FurnitureComponent {
         } else {
             // no matrix was passed in so just copy.
             utils.copy(this.localMatrix, this.worldMatrix);
-        }
+        };
 
         // now process all the children
         var worldMatrix = this.worldMatrix;
         this.children.forEach(function (child) {
             child.updateWorldMatrix(worldMatrix);
         });
-    };
+    }
+}
 
-};
 
 /**
  * Map containing all the scene furnitures
@@ -248,74 +248,74 @@ async function initializeProgram() {
     getUniformLocations();
 }
 
-function initParams(){
-	//control vars lights
-	specularType = [1, 0];
-	ambientON = true;
-	directON = true;
-	pointLightON = true;
-	numOfSpotlights = 1;
-	dirLightAlpha = -utils.degToRad(270);
-	dirLightBeta  = -utils.degToRad(270);
+function initParams() {
+    //control vars lights
+    specularType = [1, 0];
+    ambientON = true;
+    directON = true;
+    pointLightON = true;
+    numOfSpotlights = 1;
+    dirLightAlpha = -utils.degToRad(270);
+    dirLightBeta = -utils.degToRad(270);
 
-	//lights
-	//ambient light
-	ambientLightColor = [50/255, 50/255, 50/255, 1.0];
-	//point light
-	pointLightColor = [254/255, 244/255, 229/255, 1.0];
-	pointLightPosition = [-0.1, 1.0, 2.0];
-	pointLightDecay = 1.0;
-	pointLightTarget = 1.0;
-	//spot lights
-	spotlights = new Map();
-	for(i=0; i<numOfSpotlights;i++){
-		spotlights.set('spotLight'+i,{});
-		spotlights.get('spotLight'+i).name = 'spotLight'+i;
-		spotlights.get('spotLight'+i).color = [230/255, 230/255 ,230/255, 1.0];
-		spotlights.get('spotLight'+i).position = [1.0, 1.0, 0.0];
-		spotlights.get('spotLight'+i).direction = [1.0, 0.1, 0.1];
-		spotlights.get('spotLight'+i).decay = 1.0;
-		spotlights.get('spotLight'+i).target = 1.0;
-		spotlights.get('spotLight'+i).coneIn = 30.0;
-		spotlights.get('spotLight'+i).coneOut = 60.0;
-		spotlights.get('spotLight'+i).On = true;
+    //lights
+    //ambient light
+    ambientLightColor = [50 / 255, 50 / 255, 50 / 255, 1.0];
+    //point light
+    pointLightColor = [254 / 255, 244 / 255, 229 / 255, 1.0];
+    pointLightPosition = [-0.1, 1.0, 2.0];
+    pointLightDecay = 1.0;
+    pointLightTarget = 1.0;
+    //spot lights
+    spotlights = new Map();
+    for (i = 0; i < numOfSpotlights; i++) {
+        spotlights.set('spotLight' + i, {});
+        spotlights.get('spotLight' + i).name = 'spotLight' + i;
+        spotlights.get('spotLight' + i).color = [230 / 255, 230 / 255, 230 / 255, 1.0];
+        spotlights.get('spotLight' + i).position = [1.0, 1.0, 0.0];
+        spotlights.get('spotLight' + i).direction = [1.0, 0.1, 0.1];
+        spotlights.get('spotLight' + i).decay = 1.0;
+        spotlights.get('spotLight' + i).target = 1.0;
+        spotlights.get('spotLight' + i).coneIn = 30.0;
+        spotlights.get('spotLight' + i).coneOut = 60.0;
+        spotlights.get('spotLight' + i).On = true;
 
-	}
-	//direct light
-	dirLightColor = [0.9, 1.0, 1.0, 1.0];
-	dirLightDirection = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
-		Math.sin(dirLightAlpha),
-		Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
-	];
+    }
+    //direct light
+    dirLightColor = [0.9, 1.0, 1.0, 1.0];
+    dirLightDirection = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
+    Math.sin(dirLightAlpha),
+    Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
+    ];
 
 
-	diffuseLightColor = [230/255, 230/255 ,230/255, 1.0]; //warm white
-	specularLightColor = [250/255, 250/255, 250/255, 1.0]; //white
-	specShine = 100.0;
+    diffuseLightColor = [230 / 255, 230 / 255, 230 / 255, 1.0]; //warm white
+    specularLightColor = [250 / 255, 250 / 255, 250 / 255, 1.0]; //white
+    specShine = 100.0;
 
-	mixTextureColor = 0.9; //percentage of texture color in the final projection
+    mixTextureColor = 0.9; //percentage of texture color in the final projection
 
 }
 
 async function compileAndLinkShaders() {
-	var path = window.location.pathname;
-	var page = path.split("/").pop();
-	baseDir = window.location.href.replace(page, '');
-	shaderDir = baseDir + "shaders/";
+    var path = window.location.pathname;
+    var page = path.split("/").pop();
+    baseDir = window.location.href.replace(page, '');
+    shaderDir = baseDir + "shaders/";
 
-	//static texture
-	shaders.set('static', {});
-	shaders.get('static').vs = shaderDir + 'vs.glsl';
-	shaders.get('static').fs = shaderDir + 'fs.glsl';
-	//direct light
-	shaders.set('lambAmb', {});
-	shaders.get('lambAmb').vs = shaderDir + 'lambAmb_vs.glsl';
-	shaders.get('lambAmb').fs = shaderDir + 'lambAmb_fs.glsl';
+    //static texture
+    shaders.set('static', {});
+    shaders.get('static').vs = shaderDir + 'vs.glsl';
+    shaders.get('static').fs = shaderDir + 'fs.glsl';
+    //direct light
+    shaders.set('lambAmb', {});
+    shaders.get('lambAmb').vs = shaderDir + 'lambAmb_vs.glsl';
+    shaders.get('lambAmb').fs = shaderDir + 'lambAmb_fs.glsl';
 
 
-	currentShader = 'lambAmb';
+    currentShader = 'lambAmb';
 
-	await utils.loadFiles([shaders.get(currentShader).vs, shaders.get(currentShader).fs], function (shaderText) {
+    await utils.loadFiles([shaders.get(currentShader).vs, shaders.get(currentShader).fs], function (shaderText) {
         program = utils.createAndCompileShaders(gl, shaderText);
     });
     gl.useProgram(program);
@@ -323,42 +323,42 @@ async function compileAndLinkShaders() {
 }
 
 function getAttributeLocations() {
-	positionAttributeLocation = gl.getAttribLocation(program, "in_position");
-	normalAttributeLocation = gl.getAttribLocation(program, "in_normal");
-	uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
+    positionAttributeLocation = gl.getAttribLocation(program, "in_position");
+    normalAttributeLocation = gl.getAttribLocation(program, "in_normal");
+    uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
 }
 
 function getUniformLocations() {
-	matrixLocation = gl.getUniformLocation(program, "pMatrix");
-	worldMatrixLocation = gl.getUniformLocation(program, "wMatrix");
-	textLocation = gl.getUniformLocation(program, "u_texture");
-	normalMatrixPositionHandle = gl.getUniformLocation(program,'nMatrix');
-	eyePosHandle = gl.getUniformLocation(program,'eyePos');
-	//lights uniforms
-	ambientLightHandle = gl.getUniformLocation(program,'ambientLightColor');
-	diffuseLightHandle = gl.getUniformLocation(program,'diffuseLightColor');
-	specularLightHandle = gl.getUniformLocation(program,'specularLightColor');
-	specShineHandle = gl.getUniformLocation(program, 'specShine');
-	specularTypeHandle = gl.getUniformLocation(program, 'specularType');
-	mixTextureHandle = gl.getUniformLocation(program,'mix_texture');
+    matrixLocation = gl.getUniformLocation(program, "pMatrix");
+    worldMatrixLocation = gl.getUniformLocation(program, "wMatrix");
+    textLocation = gl.getUniformLocation(program, "u_texture");
+    normalMatrixPositionHandle = gl.getUniformLocation(program, 'nMatrix');
+    eyePosHandle = gl.getUniformLocation(program, 'eyePos');
+    //lights uniforms
+    ambientLightHandle = gl.getUniformLocation(program, 'ambientLightColor');
+    diffuseLightHandle = gl.getUniformLocation(program, 'diffuseLightColor');
+    specularLightHandle = gl.getUniformLocation(program, 'specularLightColor');
+    specShineHandle = gl.getUniformLocation(program, 'specShine');
+    specularTypeHandle = gl.getUniformLocation(program, 'specularType');
+    mixTextureHandle = gl.getUniformLocation(program, 'mix_texture');
 
-	dirLightDirectionHandle = gl.getUniformLocation(program, 'dirLightDirection');
-	dirLightColorHandle = gl.getUniformLocation(program, 'dirLightColor');
-	pointLightColorHandle = gl.getUniformLocation(program, 'pointLightColor');
-	pointLightPositionHandle = gl.getUniformLocation(program, 'pointLightPos');
-	pointLightTargetHandle = gl.getUniformLocation(program, 'pointLightTarget');
-	pointLightDecayHandle = gl.getUniformLocation(program, 'pointLightDecay');
-	spotlights.forEach(spotlight => {
-		var name = spotlight.name;
-		spotlight.colorHandle = gl.getUniformLocation(program, name+'Color');
-		spotlight.positionHandle = gl.getUniformLocation(program, name+'Pos');
-		spotlight.directionHandle = gl.getUniformLocation(program, name+'Dir');
-		spotlight.decayHandle = gl.getUniformLocation(program, name+'Decay');
-		spotlight.targetHandle = gl.getUniformLocation(program, name+'Target');
-		spotlight.coneInHandle = gl.getUniformLocation(program, name+'ConeIn');
-		spotlight.coneOutHandle = gl.getUniformLocation(program, name+'ConeOut');
+    dirLightDirectionHandle = gl.getUniformLocation(program, 'dirLightDirection');
+    dirLightColorHandle = gl.getUniformLocation(program, 'dirLightColor');
+    pointLightColorHandle = gl.getUniformLocation(program, 'pointLightColor');
+    pointLightPositionHandle = gl.getUniformLocation(program, 'pointLightPos');
+    pointLightTargetHandle = gl.getUniformLocation(program, 'pointLightTarget');
+    pointLightDecayHandle = gl.getUniformLocation(program, 'pointLightDecay');
+    spotlights.forEach(spotlight => {
+        var name = spotlight.name;
+        spotlight.colorHandle = gl.getUniformLocation(program, name + 'Color');
+        spotlight.positionHandle = gl.getUniformLocation(program, name + 'Pos');
+        spotlight.directionHandle = gl.getUniformLocation(program, name + 'Dir');
+        spotlight.decayHandle = gl.getUniformLocation(program, name + 'Decay');
+        spotlight.targetHandle = gl.getUniformLocation(program, name + 'Target');
+        spotlight.coneInHandle = gl.getUniformLocation(program, name + 'ConeIn');
+        spotlight.coneOutHandle = gl.getUniformLocation(program, name + 'ConeOut');
 
-	});
+    });
 
 
 }
@@ -395,11 +395,21 @@ async function loadModel(furnitureConfig) {
 
     model.rootnode.children.forEach(parsedChildren => {
         if (parsedChildren.meshes != undefined) {
-            let component = new FurnitureComponent();
-
+            let component = new Furniture();
+            furniture.children.push(component);
             component.name = parsedChildren.name;
-            component.localMatrix = parsedChildren.transformation;
-            component.worldMatrix = furnitureConfig.initCoords;
+            component.localMatrix = utils.multiplyMatrices(
+                utils.multiplyMatrices(
+                    utils.multiplyMatrices(
+                        furnitureConfig.initCoords
+                        , furnitureConfig.initRotation
+                    )
+                    , furnitureConfig.initScale
+                )
+                , parsedChildren.transformation
+            );
+            component.updateWorldMatrix(worldMatrix);
+            
             component.vertices = model.meshes[parsedChildren.meshes].vertices;
             component.normals = model.meshes[parsedChildren.meshes].normals;
             component.indices = [].concat.apply([], model.meshes[parsedChildren.meshes].faces);
@@ -468,7 +478,6 @@ async function loadModel(furnitureConfig) {
             image.src = modelsDir + furniture.name + "/" + component.textureImageName; //+ "Room/Floor.jpg"; //
 
             component.texture = texture;
-            furniture.components.push(component);
 
         }
     });
@@ -483,44 +492,44 @@ function drawScene() {
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    gl.uniform3fv(eyePosHandle,[cx,cy,cz]);
-	//ambient light
-	gl.uniform4fv(ambientLightHandle, ambientLightColor);
-	//brdf
-	gl.uniform4fv(diffuseLightHandle, diffuseLightColor);
-	gl.uniform4fv(specularLightHandle, specularLightColor);
-	gl.uniform1f(specShineHandle, specShine);
-	gl.uniform1f(mixTextureHandle, mixTextureColor);
-	gl.uniform2fv(specularTypeHandle,specularType);
-	//directional light
-	gl.uniform4fv(dirLightColorHandle, dirLightColor);
-	gl.uniform3fv(dirLightDirectionHandle, dirLightDirection);
-	//point light
-	gl.uniform4fv(pointLightColorHandle, pointLightColor);
-	gl.uniform3fv(pointLightPositionHandle, pointLightPosition);
-	gl.uniform1f(pointLightDecayHandle, pointLightDecay);
-	gl.uniform1f(pointLightTargetHandle, pointLightTarget);
-	//spotlights
-	for(i=0; i < numOfSpotlights; i++){
-		var spotlight = spotlights.get('spotLight'+i);
-		gl.uniform4fv(spotlight.colorHandle, spotlight.color);
-		gl.uniform3fv(spotlight.positionHandle, spotlight.position);
-		gl.uniform3fv(spotlight.directionHandle, spotlight.direction);
-		gl.uniform1f(spotlight.decayHandle, spotlight.decay);
-		gl.uniform1f(spotlight.targetHandle, spotlight.target);
-		gl.uniform1f(spotlight.coneInHandle, spotlight.coneIn);
-		gl.uniform1f(spotlight.coneOutHandle, spotlight.coneOut);
-	}
+    gl.uniform3fv(eyePosHandle, [cx, cy, cz]);
+    //ambient light
+    gl.uniform4fv(ambientLightHandle, ambientLightColor);
+    //brdf
+    gl.uniform4fv(diffuseLightHandle, diffuseLightColor);
+    gl.uniform4fv(specularLightHandle, specularLightColor);
+    gl.uniform1f(specShineHandle, specShine);
+    gl.uniform1f(mixTextureHandle, mixTextureColor);
+    gl.uniform2fv(specularTypeHandle, specularType);
+    //directional light
+    gl.uniform4fv(dirLightColorHandle, dirLightColor);
+    gl.uniform3fv(dirLightDirectionHandle, dirLightDirection);
+    //point light
+    gl.uniform4fv(pointLightColorHandle, pointLightColor);
+    gl.uniform3fv(pointLightPositionHandle, pointLightPosition);
+    gl.uniform1f(pointLightDecayHandle, pointLightDecay);
+    gl.uniform1f(pointLightTargetHandle, pointLightTarget);
+    //spotlights
+    for (i = 0; i < numOfSpotlights; i++) {
+        var spotlight = spotlights.get('spotLight' + i);
+        gl.uniform4fv(spotlight.colorHandle, spotlight.color);
+        gl.uniform3fv(spotlight.positionHandle, spotlight.position);
+        gl.uniform3fv(spotlight.directionHandle, spotlight.direction);
+        gl.uniform1f(spotlight.decayHandle, spotlight.decay);
+        gl.uniform1f(spotlight.targetHandle, spotlight.target);
+        gl.uniform1f(spotlight.coneInHandle, spotlight.coneIn);
+        gl.uniform1f(spotlight.coneOutHandle, spotlight.coneOut);
+    }
 
-    
+
     furnitures.forEach(furniture => {
-        furniture.components.forEach(component => {
+        furniture.children.forEach(component => {
 
             updateTransformationMatrices(component);
             bindVertexArray();
             sendUniformsToGPU();
             drawElements();
-		
+
             //projection matrix
             gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
             //normal matrix
@@ -538,9 +547,10 @@ function drawScene() {
         });
     });
 
-	window.requestAnimationFrame(drawScene);
+    window.requestAnimationFrame(drawScene);
 }
 
+//TODO CONTROLLA CHE SIA TUTTO GIUSTO
 function updateTransformationMatrices(component) {
 
     updateView();
@@ -560,7 +570,7 @@ function updateView() {
 
 function updatePerspective() {
 
-    perspectiveMatrix = utils.MakePerspective(120, gl.canvas.width / gl.canvas.height, 0.1, 100.0);
+    perspectiveMatrix = utils.MakePerspective(40, gl.canvas.width / gl.canvas.height, 0.1, 100.0);
 }
 
 function bindVertexArray() {
