@@ -129,9 +129,9 @@ var furnituresConfig = [
         name: 'chair',
         type: 'JSON',
         imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix( 3.0, 1.0, - 5.5),
-        initScale: utils.MakeScaleMatrix(0.6),
-        initRotation: utils.MakeRotateYMatrix(30),
+        initCoords: utils.MakeTranslateMatrix(3.0, 0.0, - 5.5),
+        initScale: utils.MakeScaleMatrix(0.01),
+        initRotation: utils.MakeRotateXMatrix(-90),
     },
     {
         name: 'Room',
@@ -203,6 +203,11 @@ class Furniture {
 var furnitures = new Map();
 
 /**
+ * Root of scene graph
+ */
+var root;
+
+/**
  * Initialize the program and start drawing the scene
  */
 async function main() {
@@ -214,8 +219,7 @@ async function main() {
 
     await loadModels();
 
-    console.log("FURNITURES");
-    console.log(furnitures);
+    setGraphRoot();
 
 
     drawScene();
@@ -391,7 +395,7 @@ async function loadModel(furnitureConfig) {
             model = parsedModel;
         });
 
-    var furniture = new Furniture();
+    let furniture = new Furniture();
     furnitures.set(furnitureConfig.name, furniture);
     furniture.name = furnitureConfig.name;
     //local matrix of root object node
@@ -412,8 +416,7 @@ async function loadModel(furnitureConfig) {
                 )
                 , parsedChildren.transformation
             );
-            component.updateWorldMatrix(worldMatrix);
-            
+
             component.vertices = model.meshes[parsedChildren.meshes].vertices;
             component.normals = model.meshes[parsedChildren.meshes].normals;
             component.indices = [].concat.apply([], model.meshes[parsedChildren.meshes].faces);
@@ -490,6 +493,19 @@ async function loadModel(furnitureConfig) {
     console.log(furniture);
 }
 
+function setGraphRoot() {
+    root = furnitures.get('Room');
+
+
+    furnitures.delete('Room');
+    furnitures.forEach(furniture => {
+        furniture.setParent(root);
+    });
+    //Init world matrix
+    root.updateWorldMatrix();
+    worldMatrix = root.worldMatrix;
+}
+
 function drawScene() {
 
     utils.resizeCanvasToDisplaySize(gl.canvas);
@@ -525,6 +541,14 @@ function drawScene() {
         gl.uniform1f(spotlight.coneOutHandle, spotlight.coneOut);
     }
 
+    //Draw the room
+    updateTransformationMatrices(root);
+    root.updateWorldMatrix(worldMatrix);
+
+    root.children.filter(children => children.indices)
+        .forEach(component => {
+            drawElement(component);
+        });
 
     furnitures.forEach(furniture => {
         furniture.children.forEach(component => {
@@ -532,49 +556,48 @@ function drawScene() {
             updateTransformationMatrices(component);
             bindVertexArray();
             sendUniformsToGPU();
-            drawElements();
-
-            //projection matrix
-            gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-            //normal matrix
-            gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(normalMatrix));
-            //world matrix
-            gl.uniformMatrix4fv(worldMatrixLocation, gl.FALSE, utils.transposeMatrix(worldMatrix));
+            drawElement(component);
 
 
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, component.texture);
-            gl.uniform1i(textLocation, 0);
-
-            gl.bindVertexArray(component.vao);
-            gl.drawElements(gl.TRIANGLES, component.indices.length, gl.UNSIGNED_SHORT, 0);
         });
     });
 
     window.requestAnimationFrame(drawScene);
 }
 
-//TODO CONTROLLA CHE SIA TUTTO GIUSTO
-function updateTransformationMatrices(component) {
+function drawElement(furniture) {
+    //projection matrix
+    gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+    //normal matrix
+    gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(normalMatrix));
+    //world matrix
+    gl.uniformMatrix4fv(worldMatrixLocation, gl.FALSE, utils.transposeMatrix(worldMatrix));
 
-    updateView();
-    updatePerspective();
 
-    viewWorldMatrix = utils.multiplyMatrices(viewMatrix, component.worldMatrix);
-    projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewWorldMatrix);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, furniture.texture);
+    gl.uniform1i(textLocation, 0);
+
+    gl.bindVertexArray(furniture.vao);
+    gl.drawElements(gl.TRIANGLES, furniture.indices.length, gl.UNSIGNED_SHORT, 0);
+
 }
 
-function updateView() {
+//TODO CONTROLLA CHE SIA TUTTO GIUSTO
+function updateTransformationMatrices(component) {
+    updateView(component);
+    updatePerspective();
+}
 
-	worldMatrix = utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-	viewMatrix = utils.MakeView(cx, cy, cz, elevation, angle);
-	normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldMatrix));
-
+function updateView(component) {
+    viewMatrix = utils.MakeView(cx, cy, cz, elevation, angle);
+    viewWorldMatrix = utils.multiplyMatrices(viewMatrix, component.worldMatrix);
 }
 
 function updatePerspective() {
-
-    perspectiveMatrix = utils.MakePerspective(40, gl.canvas.width / gl.canvas.height, 0.1, 100.0);
+    perspectiveMatrix = utils.MakePerspective(60, gl.canvas.width / gl.canvas.height, 0.01, 2000.0);
+    projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewWorldMatrix);
+    normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldMatrix));
 }
 
 function bindVertexArray() {
