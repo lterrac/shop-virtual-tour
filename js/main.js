@@ -174,6 +174,10 @@ class Furniture {
         this.parent = parent;
     }
 
+    getWorldCoordinates() {
+        return [this.worldMatrix[3] / this.worldMatrix[15], this.worldMatrix[7] / this.worldMatrix[15], this.worldMatrix[11] / this.worldMatrix[15]];
+    }
+
 
     updateWorldMatrix(matrix) {
         if (matrix) {
