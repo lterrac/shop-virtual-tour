@@ -181,18 +181,30 @@ class Furniture {
         return [this.worldMatrix[3] / this.worldMatrix[15], this.worldMatrix[7] / this.worldMatrix[15], this.worldMatrix[11] / this.worldMatrix[15]];
     }
 
+    getOrbitCoordinates() {
+        return [this.orbit.worldMatrix[3] / this.orbit.worldMatrix[15], this.orbit.worldMatrix[7] / this.orbit.worldMatrix[15], this.orbit.worldMatrix[11] / this.orbit.worldMatrix[15]];
+    }
 
     updateWorldMatrix(matrix) {
         if (matrix) {
+            console.log("a " + this.name);
             // a matrix was passed in so do the math
             this.worldMatrix = utils.multiplyMatrices(matrix, this.localMatrix);
         } else {
+            console.log("b " + this.name);
+            
             // no matrix was passed in so just copy.
             utils.copy(this.localMatrix, this.worldMatrix);
         };
 
-        // now process all the children
         var worldMatrix = this.worldMatrix;
+
+        // process the orbit
+        if (this.orbit) {
+            this.orbit.updateWorldMatrix(worldMatrix);
+        }
+
+        // now process all the children
         this.children.forEach(function (child) {
             child.updateWorldMatrix(worldMatrix);
         });
@@ -412,23 +424,35 @@ async function loadModel(furnitureConfig) {
     furniture.name = furnitureConfig.name;
     cameraTour.push(furnitureConfig.name);
     //local matrix of root object node
-    furniture.localMatrix = model.rootnode.transformation;
+    furniture.localMatrix = utils.multiplyMatrices(
+        utils.multiplyMatrices(
+            utils.multiplyMatrices(
+                furnitureConfig.initCoords
+                , furnitureConfig.initRotation
+            )
+            , furnitureConfig.initScale
+        )
+        , model.rootnode.transformation
+    );
+
+    //Create orbit
+    let orbit = new Furniture();
+    orbit.name = furnitureConfig.name + " orbit";
+    orbit.localMatrix = utils.multiplyMatrices(
+          utils.multiplyMatrices(
+              utils.MakeTranslateMatrix(0.0, 2.0, 3.0),
+              utils.MakeRotateYMatrix(0)
+          ),
+          utils.identityMatrix()
+        );
+    furniture.orbit = orbit;
 
     model.rootnode.children.forEach(parsedChildren => {
         if (parsedChildren.meshes != undefined) {
             let component = new Furniture();
             furniture.children.push(component);
             component.name = parsedChildren.name;
-            component.localMatrix = utils.multiplyMatrices(
-                utils.multiplyMatrices(
-                    utils.multiplyMatrices(
-                        furnitureConfig.initCoords
-                        , furnitureConfig.initRotation
-                    )
-                    , furnitureConfig.initScale
-                )
-                , parsedChildren.transformation
-            );
+            component.localMatrix = parsedChildren.transformation;
 
             component.vertices = model.meshes[parsedChildren.meshes].vertices;
             component.normals = model.meshes[parsedChildren.meshes].normals;
@@ -516,6 +540,10 @@ function setGraphRoot() {
     });
     //Init world matrix
     root.updateWorldMatrix();
+    console.log("orbit chair ");
+    console.log(furnitures.get('chair').orbit);
+    
+    
     worldMatrix = root.worldMatrix;
 }
 
@@ -556,7 +584,7 @@ function drawScene() {
 
     //Draw the room
     updateTransformationMatrices(root);
-    root.updateWorldMatrix(worldMatrix);
+//    root.updateWorldMatrix(worldMatrix);
 
     root.children.filter(children => children.indices)
         .forEach(component => {
@@ -564,9 +592,8 @@ function drawScene() {
         });
 
     furnitures.forEach(furniture => {
-        furniture.children.forEach(component => {
-
-            updateTransformationMatrices(component);
+        updateTransformationMatrices(furniture);
+        furniture.children.forEach(component => {           
             bindVertexArray();
             sendUniformsToGPU();
             drawElement(component);
@@ -597,23 +624,20 @@ function drawElement(furniture) {
 }
 
 //TODO CONTROLLA CHE SIA TUTTO GIUSTO
-function updateTransformationMatrices(component) {
-    updateView(component);
+function updateTransformationMatrices(furniture) {
+    updateView(furniture);
     updatePerspective();
 }
 
-function updateView(component) {
+function updateView(furniture) {
     if (cameraTour[currCamera] === 'FreeCamera') {
         viewMatrix = utils.MakeView(cx, cy, cz, elevation, angle);
-        console.log('Free camera mode');
     } else {
-        viewMatrix = utils.LookAt([cx,cy,cz],furnitures.get(cameraTour[currCamera]).getWorldCoordinates(),[0,1,0],viewMatrix);
-        console.log('Look-at view mode, furniture : ' + cameraTour[currCamera] + ' Furniture ' + furnitures.get(cameraTour[currCamera]));
-        console.log('World coord: ' + furnitures.get(cameraTour[currCamera]).getWorldCoordinates());
-        console.log('Mat: ' + viewMatrix);
+        //Invert to pass from camera matrix to view matrix
+        viewMatrix = utils.invertMatrix( utils.LookAt(furnitures.get(cameraTour[currCamera]).getOrbitCoordinates(),furnitures.get(cameraTour[currCamera]).getWorldCoordinates(),[0,1,0]));
     }
 
-    viewWorldMatrix = utils.multiplyMatrices(viewMatrix, component.worldMatrix);
+    viewWorldMatrix = utils.multiplyMatrices(viewMatrix, furniture.worldMatrix);
 }
 
 function updatePerspective() {
