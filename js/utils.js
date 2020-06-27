@@ -244,16 +244,16 @@ var utils = {
 				keys[e.keyCode] = true;
 				switch (e.keyCode) {
 					case 37:
-						cx = cx - 0.2;
+						if (currCamera == 0) cx = cx - 0.2;
 						break;
 					case 39:
-						cx = cx + 0.2;
+						if (currCamera == 0) cx = cx + 0.2;
 						break;
 					case 38:
-						cz = cz - 0.2;
+						if (currCamera == 0) cz = cz - 0.2;
 						break;
 					case 40:
-						cz = cz + 0.2;
+						if (currCamera == 0) cz = cz + 0.2;
 						break;
 					case 81:
 						roll = roll - 0.2;
@@ -268,10 +268,10 @@ var utils = {
 						angle = angle - 0.2;
 						break;
 					case 82:
-						cy = cy - 0.2;
+						if (currCamera == 0) cy = cy - 0.2;
 						break;
 					case 70:
-						cy = cy + 0.2;
+						if (currCamera == 0) cy = cy + 0.2;
 						break;
 					case 87:
 						elevation = elevation + 0.2;
@@ -286,17 +286,20 @@ var utils = {
 			if (keys[e.keyCode]) {
 				keys[e.keyCode] = false;
 				switch (e.keyCode) {
+					case 32:
+						switchCamera();
+						break;
 					case 37:
-						cx = cx - 0.2;
+						if (currCamera == 0) cx = cx - 0.2;
 						break;
 					case 39:
-						cx = cx + 0.2;
+						if (currCamera == 0) cx = cx + 0.2;
 						break;
 					case 38:
-						cz = cz - 0.2;
+						if (currCamera == 0) cz = cz - 0.2;
 						break;
 					case 40:
-						cz = cz + 0.2;
+						if (currCamera == 0) cz = cz + 0.2;
 						break;
 					case 49:
 						if (ambientON == false) {
@@ -353,10 +356,10 @@ var utils = {
 						angle = angle - 0.2;
 						break;
 					case 82:
-						cy = cy - 0.2;
+						if (currCamera == 0) cy = cy - 0.2;
 						break;
 					case 70:
-						cy = cy + 0.2;
+						if (currCamera == 0) cy = cy + 0.2;
 						break;
 					case 87:
 						elevation = elevation + 0.2;

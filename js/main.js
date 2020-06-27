@@ -8,6 +8,8 @@ var gl;
 var cx = 0.5;
 var cy = 2.0;
 var cz = 1.0;
+var currCamera;
+var cameraTour;
 
 /**
  * Camera angles
@@ -272,6 +274,10 @@ function initParams() {
     dirLightAlpha = -utils.degToRad(270);
     dirLightBeta = -utils.degToRad(270);
 
+    currCamera = 0;
+    cameraTour = ['FreeCamera'];
+
+
     //lights
     //ambient light
     ambientLightColor = [50 / 255, 50 / 255, 50 / 255, 1.0];
@@ -404,6 +410,7 @@ async function loadModel(furnitureConfig) {
     let furniture = new Furniture();
     furnitures.set(furnitureConfig.name, furniture);
     furniture.name = furnitureConfig.name;
+    cameraTour.push(furnitureConfig.name);
     //local matrix of root object node
     furniture.localMatrix = model.rootnode.transformation;
 
@@ -596,7 +603,16 @@ function updateTransformationMatrices(component) {
 }
 
 function updateView(component) {
-    viewMatrix = utils.MakeView(cx, cy, cz, elevation, angle);
+    if (cameraTour[currCamera] === 'FreeCamera') {
+        viewMatrix = utils.MakeView(cx, cy, cz, elevation, angle);
+        console.log('Free camera mode');
+    } else {
+        viewMatrix = utils.LookAt([cx,cy,cz],furnitures.get(cameraTour[currCamera]).getWorldCoordinates(),[0,1,0],viewMatrix);
+        console.log('Look-at view mode, furniture : ' + cameraTour[currCamera] + ' Furniture ' + furnitures.get(cameraTour[currCamera]));
+        console.log('World coord: ' + furnitures.get(cameraTour[currCamera]).getWorldCoordinates());
+        console.log('Mat: ' + viewMatrix);
+    }
+
     viewWorldMatrix = utils.multiplyMatrices(viewMatrix, component.worldMatrix);
 }
 
@@ -604,6 +620,10 @@ function updatePerspective() {
     perspectiveMatrix = utils.MakePerspective(60, gl.canvas.width / gl.canvas.height, 0.01, 2000.0);
     projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewWorldMatrix);
     normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldMatrix));
+}
+
+function switchCamera(){
+    currCamera = (currCamera + 1) % (furnitures.size + 1);
 }
 
 function bindVertexArray() {
