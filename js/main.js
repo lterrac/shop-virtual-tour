@@ -22,9 +22,9 @@ var rvz = 0.0;
 /**
  * Camera angles
  */
-var angle = 0.0;
-var elevation = 0.0;
-var roll = 0.0;
+var angle = 0.01;
+var elevation = 0.01;
+var roll = 0.01;
 
 /**
  * Angular delta for camera
@@ -552,44 +552,18 @@ function setGraphRoot() {
 }
 
 function drawScene() {
-    dynamicCamera();
 
     utils.resizeCanvasToDisplaySize(gl.canvas);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    gl.uniform3fv(eyePosHandle, [cx, cy, cz]);
-    //ambient light
-    gl.uniform4fv(ambientLightHandle, ambientLightColor);
-    //brdf
-    gl.uniform4fv(diffuseLightHandle, diffuseLightColor);
-    gl.uniform4fv(specularLightHandle, specularLightColor);
-    gl.uniform1f(specShineHandle, specShine);
-    gl.uniform1f(mixTextureHandle, mixTextureColor);
-    gl.uniform2fv(specularTypeHandle, specularType);
-    //directional light
-    gl.uniform4fv(dirLightColorHandle, dirLightColor);
-    gl.uniform3fv(dirLightDirectionHandle, dirLightDirection);
-    //point light
-    gl.uniform4fv(pointLightColorHandle, pointLightColor);
-    gl.uniform3fv(pointLightPositionHandle, pointLightPosition);
-    gl.uniform1f(pointLightDecayHandle, pointLightDecay);
-    gl.uniform1f(pointLightTargetHandle, pointLightTarget);
-    //spotlights
-    for (i = 0; i < numOfSpotlights; i++) {
-        var spotlight = spotlights.get('spotLight' + i);
-        gl.uniform4fv(spotlight.colorHandle, spotlight.color);
-        gl.uniform3fv(spotlight.positionHandle, spotlight.position);
-        gl.uniform3fv(spotlight.directionHandle, spotlight.direction);
-        gl.uniform1f(spotlight.decayHandle, spotlight.decay);
-        gl.uniform1f(spotlight.targetHandle, spotlight.target);
-        gl.uniform1f(spotlight.coneInHandle, spotlight.coneIn);
-        gl.uniform1f(spotlight.coneOutHandle, spotlight.coneOut);
-    }
+    sendUniformsToGPU();
+
 
     //Draw the room
     updateTransformationMatrices(root);
     //    root.updateWorldMatrix(worldMatrix);
+    dynamicCamera();
 
     root.children.filter(children => children.indices)
         .forEach(component => {
@@ -600,7 +574,6 @@ function drawScene() {
         updateTransformationMatrices(furniture);
         furniture.children.forEach(component => {
             bindVertexArray();
-            sendUniformsToGPU();
             drawElement(component);
 
 
@@ -610,8 +583,8 @@ function drawScene() {
     window.requestAnimationFrame(drawScene);
 }
 function dynamicCamera() {
-    dvecmat = utils.multiplyMatrices(
-        utils.MakeRotateZMatrix(-roll),utils.MakeView(cx, cy, cz, elevation, angle));;
+
+    dvecmat = utils.transposeMatrix(viewMatrix);
     dvecmat[12] = dvecmat[13] = dvecmat[14] = 0.0;
     xaxis = [dvecmat[0], dvecmat[4], dvecmat[8]];
     yaxis = [dvecmat[1], dvecmat[5], dvecmat[9]];
@@ -657,10 +630,7 @@ function dynamicCamera() {
     delta = utils.multiplyMatrixVector(dvecmat, [vx, vy, vz, 0.0]);
     cx += delta[0];
     cy += delta[1];
-    cz += delta[2];
-    console.log(dvecmat);
-    console.log(cx + " " + cy + " " + cz + " ");
-    
+    cz += delta[2];    
 }
 
 function drawElement(furniture) {
@@ -689,7 +659,8 @@ function updateTransformationMatrices(furniture) {
 
 function updateView(furniture) {
     if (cameraTour[currCamera] === 'FreeCamera') {
-        viewMatrix = utils.MakeView(cx, cy, cz, elevation, angle);
+        viewMatrix =  utils.multiplyMatrices(
+            utils.MakeRotateZMatrix(-roll),utils.MakeView(cx, cy, cz, elevation, angle));
     } else {
         //Invert to pass from camera matrix to view matrix
         viewMatrix = utils.invertMatrix(utils.LookAt(furnitures.get(cameraTour[currCamera]).getOrbitCoordinates(), furnitures.get(cameraTour[currCamera]).getWorldCoordinates(), [0, 1, 0]));
@@ -712,6 +683,34 @@ function bindVertexArray() {
 
 }
 function sendUniformsToGPU() {
+    gl.uniform3fv(eyePosHandle, [cx, cy, cz]);
+    //ambient light
+    gl.uniform4fv(ambientLightHandle, ambientLightColor);
+    //brdf
+    gl.uniform4fv(diffuseLightHandle, diffuseLightColor);
+    gl.uniform4fv(specularLightHandle, specularLightColor);
+    gl.uniform1f(specShineHandle, specShine);
+    gl.uniform1f(mixTextureHandle, mixTextureColor);
+    gl.uniform2fv(specularTypeHandle, specularType);
+    //directional light
+    gl.uniform4fv(dirLightColorHandle, dirLightColor);
+    gl.uniform3fv(dirLightDirectionHandle, dirLightDirection);
+    //point light
+    gl.uniform4fv(pointLightColorHandle, pointLightColor);
+    gl.uniform3fv(pointLightPositionHandle, pointLightPosition);
+    gl.uniform1f(pointLightDecayHandle, pointLightDecay);
+    gl.uniform1f(pointLightTargetHandle, pointLightTarget);
+    //spotlights
+    for (i = 0; i < numOfSpotlights; i++) {
+        var spotlight = spotlights.get('spotLight' + i);
+        gl.uniform4fv(spotlight.colorHandle, spotlight.color);
+        gl.uniform3fv(spotlight.positionHandle, spotlight.position);
+        gl.uniform3fv(spotlight.directionHandle, spotlight.direction);
+        gl.uniform1f(spotlight.decayHandle, spotlight.decay);
+        gl.uniform1f(spotlight.targetHandle, spotlight.target);
+        gl.uniform1f(spotlight.coneInHandle, spotlight.coneIn);
+        gl.uniform1f(spotlight.coneOutHandle, spotlight.coneOut);
+    }
 
 }
 function drawElements() {
@@ -723,40 +722,40 @@ var keyFunctionDown = function (e) {
         keys[e.keyCode] = true;
         switch (e.keyCode) {
             case 37:
-                rvy = rvy + 1.0;
+                rvy = rvy + 0.2;
                 break;
             case 39:
-                rvy = rvy - 1.0;
+                rvy = rvy - 0.2;
                 break;
             case 38:
-                rvx = rvx + 1.0;
+                rvx = rvx + 0.2;
                 break;
             case 40:
-                rvx = rvx - 1.0;
+                rvx = rvx - 0.2;
                 break;
             case 81:
-                rvz = rvz + 1.0;
+                rvz = rvz + 0.2;
                 break;
             case 69:
-                rvz = rvz - 1.0;
+                rvz = rvz - 0.2;
                 break;
             case 65:
-                vx = vx - 1.0;
+                vx = vx - 0.2;
                 break;
             case 68:
-                vx = vx + 1.0;
+                vx = vx + 0.2;
                 break;
             case 82:
-                vy = vy + 1.0;
+                vy = vy + 0.2;
                 break;
             case 70:
-                vy = vy - 1.0;
+                vy = vy - 0.2;
                 break;
             case 87:
-                vz = vz - 1.0;
+                vz = vz - 0.2;
                 break;
             case 83:
-                vz = vz + 1.0;
+                vz = vz + 0.2;
                 break;
         }
     }
@@ -766,40 +765,40 @@ var keyFunctionUp = function (e) {
         keys[e.keyCode] = false;
         switch (e.keyCode) {
             case 37:
-                rvy = rvy - 1.0;
+                rvy = rvy - 0.2;
                 break;
             case 39:
-                rvy = rvy + 1.0;
+                rvy = rvy + 0.2;
                 break;
             case 38:
-                rvx = rvx - 1.0;
+                rvx = rvx - 0.2;
                 break;
             case 40:
-                rvx = rvx + 1.0;
+                rvx = rvx + 0.2;
                 break;
             case 81:
-                rvz = rvz - 1.0;
+                rvz = rvz - 0.2;
                 break;
             case 69:
-                rvz = rvz + 1.0;
+                rvz = rvz + 0.2;
                 break;
             case 65:
-                vx = vx + 1.0;
+                vx = vx + 0.2;
                 break;
             case 68:
-                vx = vx - 1.0;
+                vx = vx - 0.2;
                 break;
             case 82:
-                vy = vy - 1.0;
+                vy = vy - 0.2;
                 break;
             case 70:
-                vy = vy + 1.0;
+                vy = vy + 0.2;
                 break;
             case 87:
-                vz = vz + 1.0;
+                vz = vz + 0.2;
                 break;
             case 83:
-                vz = vz - 1.0;
+                vz = vz - 0.2;
                 break;
             case 32:
                 switchCamera();
