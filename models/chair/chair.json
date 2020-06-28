@@ -53010,14 +53010,14 @@
 					,"semantic": 1
 					,"index": 0
 					,"type": 3
-					,"value": "chair.png"
+					,"value": "chair.webp"
 				}
 				,{
 					 "key": "$tex.file"
 					,"semantic": 3
 					,"index": 0
 					,"type": 3
-					,"value": "chair.png"
+					,"value": "chair.webp"
 				}
 			]
 		}

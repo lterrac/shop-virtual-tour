@@ -56,8 +56,6 @@ var utils = {
 		const expandFullScreen = () => {
 			canvas.width = window.innerWidth;
 			canvas.height = window.innerHeight;
-			console.log(canvas.width + " " + window.innerWidth);
-
 		};
 		expandFullScreen();
 		// Resize screen when the browser has triggered the resize event
