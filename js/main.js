@@ -21,6 +21,11 @@ var roll = 0.0;
  */
 var delta = 0.3;
 
+/**
+ * Texture map
+ */
+var textures = new Map();
+
 //control vars lights
 var ambientON;
 var directON;
@@ -461,36 +466,52 @@ async function loadModel(furnitureConfig) {
 
 
             let texture = gl.createTexture();
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texImage2D(gl.TEXTURE_2D, 1, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-                new Uint8Array([0, 0, 255, 255]));
+            // gl.activeTexture(gl.TEXTURE0);
+            // gl.bindTexture(gl.TEXTURE_2D, texture);
+            // gl.texImage2D(gl.TEXTURE_2D, 1, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+            //     new Uint8Array([0, 0, 255, 255]));
 
-            let image = new Image();
-            var path = window.location.pathname;
-            var page = path.split("/").pop();
-            baseDir = window.location.href.replace(page, '');
-            modelsDir = baseDir + "models/";
+            
+            if (textures.has(component.textureImageName)){
+                console.log("existing texture " + component.textureImageName);
+                
+                setTexture(textures.get(component.textureImageName),texture);
+            } else {
+                console.log("new texture " + component.textureImageName);
+                
+                let image = new Image();
+                var path = window.location.pathname;
+                var page = path.split("/").pop();
+                baseDir = window.location.href.replace(page, '');
+                modelsDir = baseDir + "models/";
 
-            image.onload = function () {
-
-                gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                gl.generateMipmap(gl.TEXTURE_2D);
-            };
-
-            image.src = modelsDir + furniture.name + "/" + component.textureImageName; //+ "Room/Floor.jpg"; //
-
+                image.onload = function() {
+                    console.log("new " + component.textureImageName);
+                    
+                    setTexture(image, texture);
+                    textures.set(component.textureImageName, image);
+                };
+    
+                image.src = modelsDir + furniture.name + "/" + component.textureImageName; 
+    
+                
+    
+            }
             component.texture = texture;
-
         }
     });
 
-    console.log("loaded ");
-    console.log(furniture);
+    console.log("cached images ");
+    console.log(textures);
+}
+
+function setTexture(image, texture) {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.generateMipmap(gl.TEXTURE_2D);
 }
 
 function setGraphRoot() {
