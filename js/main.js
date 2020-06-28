@@ -4,12 +4,20 @@
 var program;
 var gl;
 
+
 // control vars camera movement
 var cx = 0.5;
 var cy = 2.0;
 var cz = 1.0;
 var currCamera;
 var cameraTour;
+
+var vx = 0.0;
+var vy = 0.0;
+var vz = 0.0;
+var rvx = 0.0;
+var rvy = 0.0;
+var rvz = 0.0;
 
 /**
  * Camera angles
@@ -192,7 +200,7 @@ class Furniture {
             this.worldMatrix = utils.multiplyMatrices(matrix, this.localMatrix);
         } else {
             console.log("b " + this.name);
-            
+
             // no matrix was passed in so just copy.
             utils.copy(this.localMatrix, this.worldMatrix);
         };
@@ -439,12 +447,12 @@ async function loadModel(furnitureConfig) {
     let orbit = new Furniture();
     orbit.name = furnitureConfig.name + " orbit";
     orbit.localMatrix = utils.multiplyMatrices(
-          utils.multiplyMatrices(
-              utils.MakeTranslateMatrix(0.0, 2.0, 3.0),
-              utils.MakeRotateYMatrix(0)
-          ),
-          utils.identityMatrix()
-        );
+        utils.multiplyMatrices(
+            utils.MakeTranslateMatrix(0.0, 2.0, 3.0),
+            utils.MakeRotateYMatrix(0)
+        ),
+        utils.identityMatrix()
+    );
     furniture.orbit = orbit;
 
     model.rootnode.children.forEach(parsedChildren => {
@@ -540,14 +548,11 @@ function setGraphRoot() {
     });
     //Init world matrix
     root.updateWorldMatrix();
-    console.log("orbit chair ");
-    console.log(furnitures.get('chair').orbit);
-    
-    
     worldMatrix = root.worldMatrix;
 }
 
 function drawScene() {
+    dynamicCamera();
 
     utils.resizeCanvasToDisplaySize(gl.canvas);
     gl.clearColor(0, 0, 0, 0);
@@ -584,7 +589,7 @@ function drawScene() {
 
     //Draw the room
     updateTransformationMatrices(root);
-//    root.updateWorldMatrix(worldMatrix);
+    //    root.updateWorldMatrix(worldMatrix);
 
     root.children.filter(children => children.indices)
         .forEach(component => {
@@ -593,7 +598,7 @@ function drawScene() {
 
     furnitures.forEach(furniture => {
         updateTransformationMatrices(furniture);
-        furniture.children.forEach(component => {           
+        furniture.children.forEach(component => {
             bindVertexArray();
             sendUniformsToGPU();
             drawElement(component);
@@ -603,6 +608,59 @@ function drawScene() {
     });
 
     window.requestAnimationFrame(drawScene);
+}
+function dynamicCamera() {
+    dvecmat = utils.multiplyMatrices(
+        utils.MakeRotateZMatrix(-roll),utils.MakeView(cx, cy, cz, elevation, angle));;
+    dvecmat[12] = dvecmat[13] = dvecmat[14] = 0.0;
+    xaxis = [dvecmat[0], dvecmat[4], dvecmat[8]];
+    yaxis = [dvecmat[1], dvecmat[5], dvecmat[9]];
+    zaxis = [dvecmat[2], dvecmat[6], dvecmat[10]];
+
+    if ((rvx != 0) || (rvy != 0) || (rvz != 0)) {
+        qx = Quaternion.fromAxisAngle(xaxis, utils.degToRad(rvx * 1));
+        qy = Quaternion.fromAxisAngle(yaxis, utils.degToRad(rvy * 1));
+        qz = Quaternion.fromAxisAngle(zaxis, utils.degToRad(rvz * 1));
+        newDvecmat = utils.multiplyMatrices(utils.multiplyMatrices(utils.multiplyMatrices(
+            qy.toMatrix4(), qx.toMatrix4()), qz.toMatrix4()), dvecmat);
+
+        R11 = newDvecmat[10];
+        R12 = newDvecmat[8];
+        R13 = newDvecmat[9];
+        R21 = newDvecmat[2];
+        R22 = newDvecmat[0];
+        R23 = newDvecmat[1];
+        R31 = newDvecmat[6];
+        R32 = newDvecmat[4];
+        R33 = newDvecmat[5];
+
+        if ((R31 < 1) && (R31 > -1)) {
+            theta = -Math.asin(R31);
+            phi = Math.atan2(R32 / Math.cos(theta), R33 / Math.cos(theta));
+            psi = -Math.atan2(R21 / Math.cos(theta), R11 / Math.cos(theta));
+
+        } else {
+            phi = 0;
+            if (R31 <= -1) {
+                theta = Math.PI / 2;
+                psi = phi + Math.atan2(R12, R13);
+            } else {
+                theta = -Math.PI / 2;
+                psi = Math.atan2(-R12, -R13) - phi;
+            }
+        }
+        elevation = theta / Math.PI * 180;
+        roll = phi / Math.PI * 180;
+        angle = psi / Math.PI * 180;
+    }
+
+    delta = utils.multiplyMatrixVector(dvecmat, [vx, vy, vz, 0.0]);
+    cx += delta[0];
+    cy += delta[1];
+    cz += delta[2];
+    console.log(dvecmat);
+    console.log(cx + " " + cy + " " + cz + " ");
+    
 }
 
 function drawElement(furniture) {
@@ -634,7 +692,7 @@ function updateView(furniture) {
         viewMatrix = utils.MakeView(cx, cy, cz, elevation, angle);
     } else {
         //Invert to pass from camera matrix to view matrix
-        viewMatrix = utils.invertMatrix( utils.LookAt(furnitures.get(cameraTour[currCamera]).getOrbitCoordinates(),furnitures.get(cameraTour[currCamera]).getWorldCoordinates(),[0,1,0]));
+        viewMatrix = utils.invertMatrix(utils.LookAt(furnitures.get(cameraTour[currCamera]).getOrbitCoordinates(), furnitures.get(cameraTour[currCamera]).getWorldCoordinates(), [0, 1, 0]));
     }
 
     viewWorldMatrix = utils.multiplyMatrices(viewMatrix, furniture.worldMatrix);
@@ -646,7 +704,7 @@ function updatePerspective() {
     normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldMatrix));
 }
 
-function switchCamera(){
+function switchCamera() {
     currCamera = (currCamera + 1) % (furnitures.size + 1);
 }
 
@@ -659,6 +717,96 @@ function sendUniformsToGPU() {
 function drawElements() {
 
 }
-
-utils.initInteraction();
+var keys = [];
+var keyFunctionDown = function (e) {
+    if (!keys[e.keyCode]) {
+        keys[e.keyCode] = true;
+        switch (e.keyCode) {
+            case 37:
+                rvy = rvy + 1.0;
+                break;
+            case 39:
+                rvy = rvy - 1.0;
+                break;
+            case 38:
+                rvx = rvx + 1.0;
+                break;
+            case 40:
+                rvx = rvx - 1.0;
+                break;
+            case 81:
+                rvz = rvz + 1.0;
+                break;
+            case 69:
+                rvz = rvz - 1.0;
+                break;
+            case 65:
+                vx = vx - 1.0;
+                break;
+            case 68:
+                vx = vx + 1.0;
+                break;
+            case 82:
+                vy = vy + 1.0;
+                break;
+            case 70:
+                vy = vy - 1.0;
+                break;
+            case 87:
+                vz = vz - 1.0;
+                break;
+            case 83:
+                vz = vz + 1.0;
+                break;
+        }
+    }
+}
+var keyFunctionUp = function (e) {
+    if (keys[e.keyCode]) {
+        keys[e.keyCode] = false;
+        switch (e.keyCode) {
+            case 37:
+                rvy = rvy - 1.0;
+                break;
+            case 39:
+                rvy = rvy + 1.0;
+                break;
+            case 38:
+                rvx = rvx - 1.0;
+                break;
+            case 40:
+                rvx = rvx + 1.0;
+                break;
+            case 81:
+                rvz = rvz - 1.0;
+                break;
+            case 69:
+                rvz = rvz + 1.0;
+                break;
+            case 65:
+                vx = vx + 1.0;
+                break;
+            case 68:
+                vx = vx - 1.0;
+                break;
+            case 82:
+                vy = vy - 1.0;
+                break;
+            case 70:
+                vy = vy + 1.0;
+                break;
+            case 87:
+                vz = vz + 1.0;
+                break;
+            case 83:
+                vz = vz - 1.0;
+                break;
+            case 32:
+                switchCamera();
+                break;
+        }
+    }
+}
+window.addEventListener("keyup", keyFunctionUp, false);
+window.addEventListener("keydown", keyFunctionDown, false);
 window.onload = main;

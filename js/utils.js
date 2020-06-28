@@ -245,39 +245,39 @@ var utils = {
 				switch (e.keyCode) {
 					case 37:
 						if (currCamera == 0) {
-							if (cx - 0.2 > -10.0)
-								cx = cx - 0.2;
+							if (cx > -10.0)
+								rvy = rvy - 0.2;
 						}
 						break;
 					case 39:
 						if (currCamera == 0) {
-							if (cx - 0.2 < 10.0)
-								cx = cx + 0.2;
+							if (cx < 10.0)
+								rvy = rvy + 0.2;
 						}
 						break;
 					case 38:
 						if (currCamera == 0) {
-							if (cz - 0.2 > -10.0)
-								cz = cz - 0.2;
+							if (cz > -10.0)
+								rvx = rvx - 0.2;
 						}
 						break;
 					case 40:
 						if (currCamera == 0) {
-							if (cz + 0.2 < 10.0)
-								cz = cz + 0.2;
+							if (cz < 10.0)
+								rvx = rvx + 0.2;
 						}
 						break;
 					case 81:
-						roll = roll - 0.2;
+						rvz = rvz - 0.2;
 						break;
 					case 69:
-						roll = roll + 0.2;
+						rvz = rvz + 0.2;
 						break;
 					case 65:
-						angle = angle + 0.2;
+						vx = vx + 0.2;
 						break;
 					case 68:
-						angle = angle - 0.2;
+						vx = vx - 0.2;
 						break;
 					case 82:
 						if (currCamera == 0) {
@@ -309,26 +309,26 @@ var utils = {
 						break;
 					case 37:
 						if (currCamera == 0) {
-							if (cx - 0.2 > -10.0)
-								cx = cx - 0.2;
+							if (cx > -10.0)
+								rvy = rvy - 0.2;
 						}
 						break;
 					case 39:
 						if (currCamera == 0) {
-							if (cx - 0.2 < 10.0)
-								cx = cx + 0.2;
+							if (cx < 10.0)
+								rvy = rvy + 0.2;
 						}
 						break;
 					case 38:
 						if (currCamera == 0) {
-							if (cz - 0.2 > -10.0)
-								cz = cz - 0.2;
+							if (cz > -10.0)
+								rvx = rvx - 0.2;
 						}
 						break;
 					case 40:
 						if (currCamera == 0) {
-							if (cz + 0.2 < 10.0)
-								cz = cz + 0.2;
+							if (cz < 10.0)
+								rvx = rvx + 0.2;
 						}
 						break;
 					case 49:
@@ -374,10 +374,10 @@ var utils = {
 						}
 						break;
 					case 81:
-						roll = roll - 0.2;
+						rvz = rvz - 0.2;
 						break;
 					case 69:
-						roll = roll + 0.2;
+						rvz = rvz + 0.2;
 						break;
 					case 65:
 						angle = angle + 0.2;
