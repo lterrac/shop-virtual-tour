@@ -244,16 +244,28 @@ var utils = {
 				keys[e.keyCode] = true;
 				switch (e.keyCode) {
 					case 37:
-						if (currCamera == 0) cx = cx - 0.2;
+						if (currCamera == 0) {
+							if (cx - 0.2 > -10.0)
+								cx = cx - 0.2;
+						}
 						break;
 					case 39:
-						if (currCamera == 0) cx = cx + 0.2;
+						if (currCamera == 0) {
+							if (cx - 0.2 < 10.0)
+								cx = cx + 0.2;
+						}
 						break;
 					case 38:
-						if (currCamera == 0) cz = cz - 0.2;
+						if (currCamera == 0) {
+							if (cz - 0.2 > -10.0)
+								cz = cz - 0.2;
+						}
 						break;
 					case 40:
-						if (currCamera == 0) cz = cz + 0.2;
+						if (currCamera == 0) {
+							if (cz + 0.2 < 10.0)
+								cz = cz + 0.2;
+						}
 						break;
 					case 81:
 						if(currCamera == 0) roll = roll - 0.2;
@@ -268,10 +280,16 @@ var utils = {
 						if(currCamera == 0) angle = angle - 0.2;
 						break;
 					case 82:
-						if (currCamera == 0) cy = cy - 0.2;
+						if (currCamera == 0) {
+							if (cy - 0.2 > 0.0)
+								cy = cy - 0.2;
+						}
 						break;
 					case 70:
-						if (currCamera == 0) cy = cy + 0.2;
+						if (currCamera == 0) {
+							if (cy - 0.2 < 5.0)
+								cy = cy + 0.2;
+						}
 						break;
 					case 87:
 						if(currCamera == 0) elevation = elevation + 0.2;
@@ -290,16 +308,28 @@ var utils = {
 						switchCamera();
 						break;
 					case 37:
-						if (currCamera == 0) cx = cx - 0.2;
+						if (currCamera == 0) {
+							if (cx - 0.2 > -10.0)
+								cx = cx - 0.2;
+						}
 						break;
 					case 39:
-						if (currCamera == 0) cx = cx + 0.2;
+						if (currCamera == 0) {
+							if (cx - 0.2 < 10.0)
+								cx = cx + 0.2;
+						}
 						break;
 					case 38:
-						if (currCamera == 0) cz = cz - 0.2;
+						if (currCamera == 0) {
+							if (cz - 0.2 > -10.0)
+								cz = cz - 0.2;
+						}
 						break;
 					case 40:
-						if (currCamera == 0) cz = cz + 0.2;
+						if (currCamera == 0) {
+							if (cz + 0.2 < 10.0)
+								cz = cz + 0.2;
+						}
 						break;
 					case 49:
 						if (ambientON == false) {
@@ -358,10 +388,16 @@ var utils = {
 						if(currCamera == 0) angle = angle - 0.2;
 						break;
 					case 82:
-						if (currCamera == 0) cy = cy - 0.2;
+						if (currCamera == 0) {
+							if (cy - 0.2 > 0.0)
+								cy = cy - 0.2;
+						}
 						break;
 					case 70:
-						if (currCamera == 0) cy = cy + 0.2;
+						if (currCamera == 0) {
+							if (cy - 0.2 < 5.0)
+								cy = cy + 0.2;
+						}
 						break;
 					case 87:
 						if(currCamera == 0) elevation = elevation + 0.2;
