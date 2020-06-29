@@ -3,23 +3,38 @@
  */
 var program;
 var gl;
+var rotation = (Quaternion.ONE); 
 
 // control vars camera movement
 var cx = 0.5;
 var cy = 2.0;
 var cz = 1.0;
+var currCamera;
+var cameraTour;
+
+const MAX_ELEVATION_ANGLE = 0.5;
+const MIN_ELEVATION_ANGLE = MAX_ELEVATION_ANGLE * -1;
+
+var vx = 0.0;
+var vy = 0.0;
+var vz = 0.0;
+var rvx = 0.0;
+var rvy = 0.0;
+var rvz = 0.0;
 
 /**
  * Camera angles
  */
-var angle = 0.0;
-var elevation = 0.0;
-var roll = 0.0;
+var angle = 0.01;
+var elevation = 0.01;
+var roll = 0.01;
 
 /**
  * Angular delta for camera
  */
 var delta = 0.3;
+var mouseState = false;
+var lastMouseX = -100, lastMouseY = -100;
 
 /**
  * Texture map
@@ -58,7 +73,7 @@ var mixTextureColor;
 
 
 var perspectiveMatrix;
-var viewMatrix;
+var viewMatrix = utils.MakeView(vx, vy, vz, elevation, angle);
 var worldMatrix;
 var viewWorldMatrix;
 var projectionMatrix;
@@ -93,7 +108,6 @@ var dirLightColorHandle;
 var pointLightDecayHandle;
 var pointLightTargetHandle;
 
-
 /**
  * Furnitures initial configuration
  */
@@ -118,7 +132,7 @@ var furnituresConfig = [
         name: 'closet',
         type: 'JSON',
         imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix(3.0, 0.5, - 2.5),
+        initCoords: utils.MakeTranslateMatrix(3.0, 0.6, - 2.5),
         initScale: utils.MakeScaleMatrix(1),
         initRotation: utils.MakeRotateYMatrix(0),
     },
@@ -183,18 +197,30 @@ class Furniture {
         return [this.worldMatrix[3] / this.worldMatrix[15], this.worldMatrix[7] / this.worldMatrix[15], this.worldMatrix[11] / this.worldMatrix[15]];
     }
 
+    getOrbitCoordinates() {
+        return [this.orbit.worldMatrix[3] / this.orbit.worldMatrix[15], this.orbit.worldMatrix[7] / this.orbit.worldMatrix[15], this.orbit.worldMatrix[11] / this.orbit.worldMatrix[15]];
+    }
 
     updateWorldMatrix(matrix) {
         if (matrix) {
+            console.log("a " + this.name);
             // a matrix was passed in so do the math
             this.worldMatrix = utils.multiplyMatrices(matrix, this.localMatrix);
         } else {
+            console.log("b " + this.name);
+
             // no matrix was passed in so just copy.
             utils.copy(this.localMatrix, this.worldMatrix);
         };
 
-        // now process all the children
         var worldMatrix = this.worldMatrix;
+
+        // process the orbit
+        if (this.orbit) {
+            this.orbit.updateWorldMatrix(worldMatrix);
+        }
+
+        // now process all the children
         this.children.forEach(function (child) {
             child.updateWorldMatrix(worldMatrix);
         });
@@ -233,6 +259,11 @@ async function main() {
 
 function getCanvas() {
     canvas = document.getElementById("main_canvas");
+
+    canvas.addEventListener("mousedown", utils.doMouseDown, false);
+    canvas.addEventListener("mouseup", utils.doMouseUp, false);
+    canvas.addEventListener("mousemove", utils.doMouseMove, false);
+
     gl = canvas.getContext("webgl2");
     if (!gl) {
         document.write("GL context not opened");
@@ -270,6 +301,10 @@ function initParams() {
     numOfSpotlights = 1;
     dirLightAlpha = -utils.degToRad(270);
     dirLightBeta = -utils.degToRad(270);
+
+    currCamera = 0;
+    cameraTour = ['FreeCamera'];
+
 
     //lights
     //ambient light
@@ -403,24 +438,37 @@ async function loadModel(furnitureConfig) {
     let furniture = new Furniture();
     furnitures.set(furnitureConfig.name, furniture);
     furniture.name = furnitureConfig.name;
+    cameraTour.push(furnitureConfig.name);
     //local matrix of root object node
-    furniture.localMatrix = model.rootnode.transformation;
+    furniture.localMatrix = utils.multiplyMatrices(
+        utils.multiplyMatrices(
+            utils.multiplyMatrices(
+                furnitureConfig.initCoords
+                , furnitureConfig.initRotation
+            )
+            , furnitureConfig.initScale
+        )
+        , model.rootnode.transformation
+    );
+
+    //Create orbit
+    let orbit = new Furniture();
+    orbit.name = furnitureConfig.name + " orbit";
+    orbit.localMatrix = utils.multiplyMatrices(
+        utils.multiplyMatrices(
+            utils.MakeTranslateMatrix(0.0, 2.0, 3.0),
+            utils.MakeRotateYMatrix(0)
+        ),
+        utils.identityMatrix()
+    );
+    furniture.orbit = orbit;
 
     model.rootnode.children.forEach(parsedChildren => {
         if (parsedChildren.meshes != undefined) {
             let component = new Furniture();
             furniture.children.push(component);
             component.name = parsedChildren.name;
-            component.localMatrix = utils.multiplyMatrices(
-                utils.multiplyMatrices(
-                    utils.multiplyMatrices(
-                        furnitureConfig.initCoords
-                        , furnitureConfig.initRotation
-                    )
-                    , furnitureConfig.initScale
-                )
-                , parsedChildren.transformation
-            );
+            component.localMatrix = parsedChildren.transformation;
 
             component.vertices = model.meshes[parsedChildren.meshes].vertices;
             component.normals = model.meshes[parsedChildren.meshes].normals;
@@ -525,6 +573,8 @@ function setGraphRoot() {
     //Init world matrix
     root.updateWorldMatrix();
     worldMatrix = root.worldMatrix;
+
+    perspectiveMatrix = utils.MakePerspective(60, gl.canvas.width / gl.canvas.height, 0.01, 2000.0);
 }
 
 function drawScene() {
@@ -533,6 +583,142 @@ function drawScene() {
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+   
+
+    dynamicCamera();
+    //Draw the room
+    root.updateWorldMatrix(worldMatrix);
+
+    updateTransformationMatrices(root);
+    
+    sendUniformsToGPU();
+
+    root.children.filter(children => children.indices)
+        .forEach(component => {
+            drawElement(component);
+        });
+
+    furnitures.forEach(furniture => {
+        updateTransformationMatrices(furniture);
+        furniture.children.forEach(component => {
+        
+            sendUniformsToGPU();
+            drawElement(component);
+
+
+        });
+    });
+
+    window.requestAnimationFrame(drawScene);
+}
+function dynamicCamera() {
+
+    delta = Quaternion.fromEuler(utils.degToRad(rvz), 
+    utils.degToRad(-rvx), 
+    utils.degToRad(rvy));
+
+    rotation = rotation.mul(delta);
+
+
+    
+    dvecmat = utils.transposeMatrix(viewMatrix);
+    dvecmat[12] = dvecmat[13] = dvecmat[14] = 0.0;
+    xaxis = [dvecmat[0], dvecmat[4], dvecmat[8]];
+    yaxis = [dvecmat[1], dvecmat[5], dvecmat[9]];
+    zaxis = [dvecmat[2], dvecmat[6], dvecmat[10]];
+
+    if ((rvx != 0) || (rvy != 0) || (rvz != 0)) {
+        qx = Quaternion.fromAxisAngle(xaxis, utils.degToRad(rvx * 1));
+        qy = Quaternion.fromAxisAngle(yaxis, utils.degToRad(rvy * 1));
+        qz = Quaternion.fromAxisAngle(zaxis, utils.degToRad(rvz * 1));
+        newDvecmat = utils.multiplyMatrices(utils.multiplyMatrices(utils.multiplyMatrices(
+            qy.toMatrix4(), qx.toMatrix4()), qz.toMatrix4()), dvecmat);
+
+        R11 = newDvecmat[10];
+        R12 = newDvecmat[8];
+        R13 = newDvecmat[9];
+        R21 = newDvecmat[2];
+        R22 = newDvecmat[0];
+        R23 = newDvecmat[1];
+        R31 = newDvecmat[6];
+        R32 = newDvecmat[4];
+        R33 = newDvecmat[5];
+
+        if ((R31 < 1) && (R31 > -1)) {
+            theta = -Math.asin(R31);
+            phi = Math.atan2(R32 / Math.cos(theta), R33 / Math.cos(theta));
+            psi = -Math.atan2(R21 / Math.cos(theta), R11 / Math.cos(theta));
+
+        } else {
+            phi = 0;
+            if (R31 <= -1) {
+                theta = Math.PI / 2;
+                psi = phi + Math.atan2(R12, R13);
+            } else {
+                theta = -Math.PI / 2;
+                psi = Math.atan2(-R12, -R13) - phi;
+            }
+        }
+
+        theta = (theta >= MAX_ELEVATION_ANGLE) ? MAX_ELEVATION_ANGLE : (theta <= MIN_ELEVATION_ANGLE ? MIN_ELEVATION_ANGLE : theta);
+
+        elevation = theta / Math.PI * 180;
+        roll = phi / Math.PI * 180;
+        angle = psi / Math.PI * 180;
+    }
+
+    delta = utils.multiplyMatrixVector(dvecmat, [vx, vy, vz, 0.0]);
+    cx += delta[0];
+    cy += delta[1];
+    cz += delta[2];    
+}
+
+function drawElement(furniture) {
+    //projection matrix
+    gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+    //normal matrix
+    gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(normalMatrix));
+    //world matrix
+    gl.uniformMatrix4fv(worldMatrixLocation, gl.FALSE, utils.transposeMatrix(worldMatrix));
+
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, furniture.texture);
+    gl.uniform1i(textLocation, 0);
+
+    gl.bindVertexArray(furniture.vao);
+    gl.drawElements(gl.TRIANGLES, furniture.indices.length, gl.UNSIGNED_SHORT, 0);
+
+}
+
+//TODO CONTROLLA CHE SIA TUTTO GIUSTO
+function updateTransformationMatrices(furniture) {
+    updateView(furniture);
+    updatePerspective();
+}
+
+function updateView(furniture) {
+    if (cameraTour[currCamera] === 'FreeCamera') {
+        viewMatrix =  utils.MakeView(cx, cy, cz, elevation, angle);
+    } else {
+        //Invert to pass from camera matrix to view matrix
+        viewMatrix = utils.invertMatrix(utils.LookAt(furnitures.get(cameraTour[currCamera]).getOrbitCoordinates(), furnitures.get(cameraTour[currCamera]).getWorldCoordinates(), [0, 1, 0]));
+    }
+
+    viewWorldMatrix = utils.multiplyMatrices(viewMatrix, furniture.worldMatrix);
+}
+
+function updatePerspective() {
+    perspectiveMatrix = utils.MakePerspective(60, gl.canvas.width / gl.canvas.height, 0.01, 2000.0);
+    projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewWorldMatrix);
+    normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldMatrix));
+}
+
+function switchCamera() {
+    currCamera = (currCamera + 1) % (furnitures.size + 1);
+}
+
+function sendUniformsToGPU() {
     gl.uniform3fv(eyePosHandle, [cx, cy, cz]);
     //ambient light
     gl.uniform4fv(ambientLightHandle, ambientLightColor);
@@ -562,74 +748,6 @@ function drawScene() {
         gl.uniform1f(spotlight.coneOutHandle, spotlight.coneOut);
     }
 
-    //Draw the room
-    updateTransformationMatrices(root);
-    root.updateWorldMatrix(worldMatrix);
-
-    root.children.filter(children => children.indices)
-        .forEach(component => {
-            drawElement(component);
-        });
-
-    furnitures.forEach(furniture => {
-        furniture.children.forEach(component => {
-
-            updateTransformationMatrices(component);
-            bindVertexArray();
-            sendUniformsToGPU();
-            drawElement(component);
-
-
-        });
-    });
-
-    window.requestAnimationFrame(drawScene);
 }
-
-function drawElement(furniture) {
-    //projection matrix
-    gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-    //normal matrix
-    gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(normalMatrix));
-    //world matrix
-    gl.uniformMatrix4fv(worldMatrixLocation, gl.FALSE, utils.transposeMatrix(worldMatrix));
-
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, furniture.texture);
-    gl.uniform1i(textLocation, 0);
-
-    gl.bindVertexArray(furniture.vao);
-    gl.drawElements(gl.TRIANGLES, furniture.indices.length, gl.UNSIGNED_SHORT, 0);
-
-}
-
-//TODO CONTROLLA CHE SIA TUTTO GIUSTO
-function updateTransformationMatrices(component) {
-    updateView(component);
-    updatePerspective();
-}
-
-function updateView(component) {
-    viewMatrix = utils.MakeView(cx, cy, cz, elevation, angle);
-    viewWorldMatrix = utils.multiplyMatrices(viewMatrix, component.worldMatrix);
-}
-
-function updatePerspective() {
-    perspectiveMatrix = utils.MakePerspective(60, gl.canvas.width / gl.canvas.height, 0.01, 2000.0);
-    projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewWorldMatrix);
-    normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldMatrix));
-}
-
-function bindVertexArray() {
-
-}
-function sendUniformsToGPU() {
-
-}
-function drawElements() {
-
-}
-
 utils.initInteraction();
 window.onload = main;
