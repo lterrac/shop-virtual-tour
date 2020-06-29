@@ -256,16 +256,16 @@ var utils = {
 						if (currCamera == 0) cz = cz + 0.2;
 						break;
 					case 81:
-						roll = roll - 0.2;
+						if(currCamera == 0) roll = roll - 0.2;
 						break;
 					case 69:
-						roll = roll + 0.2;
+						if(currCamera == 0) roll = roll + 0.2;
 						break;
 					case 65:
-						angle = angle + 0.2;
+						if(currCamera == 0) angle = angle + 0.2;
 						break;
 					case 68:
-						angle = angle - 0.2;
+						if(currCamera == 0) angle = angle - 0.2;
 						break;
 					case 82:
 						if (currCamera == 0) cy = cy - 0.2;
@@ -274,10 +274,10 @@ var utils = {
 						if (currCamera == 0) cy = cy + 0.2;
 						break;
 					case 87:
-						elevation = elevation + 0.2;
+						if(currCamera == 0) elevation = elevation + 0.2;
 						break;
 					case 83:
-						elevation = elevation - 0.2;
+						if(currCamera == 0) elevation = elevation - 0.2;
 						break;
 				}
 			}
@@ -303,7 +303,7 @@ var utils = {
 						break;
 					case 49:
 						if (ambientON == false) {
-							ambientLightColor = [50 / 255, 50 / 255, 50 / 255, 1.0];
+							ambientLightColor = lowLight;
 							ambientON = true;
 						} else {
 							ambientLightColor = [0.0, 0.0, 0.0, 1.0];
@@ -312,7 +312,7 @@ var utils = {
 						break;
 					case 50:
 						if (directON == false) {
-							dirLightColor = [0.1, 1.0, 1.0, 1.0];
+							dirLightColor = coldLight;
 							directON = true;
 							console.log('direct on');
 						} else {
@@ -323,7 +323,7 @@ var utils = {
 						break;
 					case 51:
 						if (pointLightON == false) {
-							pointLightColor = [255 / 255, 244 / 255, 229 / 255, 1.0];
+							pointLightColor = warmLight;
 							pointLightON = true;
 							console.log('point on');
 						} else {
@@ -333,27 +333,29 @@ var utils = {
 						}
 						break;
 					case 52:
-						if (spotlights.get('spotLight0').On == false) {
-							spotlights.get('spotLight0').color = [230 / 255, 230 / 255, 230 / 255, 1.0];
-							spotlights.get('spotLight0').On = true;
-							console.log('spot0 on');
+						if (spotlight.On == false) {
+							spotlight.color = warmLight;
+							spotlight.On = true;
+							console.log('spotlight on');
 						} else {
-							spotlights.get('spotLight0').color = [0.0, 0.0, 0.0, 1.0];
-							spotlights.get('spotLight0').On = false;
-							console.log('spot0 off');
+							spotlight.color = [0.0, 0.0, 0.0, 1.0];
+							spotlight.On = false;
+							console.log('spotlight off');
 						}
 						break;
 					case 81:
-						roll = roll - 0.2;
+						if(currCamera == 0) roll = roll - 0.2;
 						break;
 					case 69:
-						roll = roll + 0.2;
+						if(currCamera == 0) roll = roll + 0.2;
 						break;
 					case 65:
-						angle = angle + 0.2;
+						if(currCamera == 0) angle = angle + 0.2;
 						break;
+					case 67: //c
+						currCamera = 0;
 					case 68:
-						angle = angle - 0.2;
+						if(currCamera == 0) angle = angle - 0.2;
 						break;
 					case 82:
 						if (currCamera == 0) cy = cy - 0.2;
@@ -362,10 +364,10 @@ var utils = {
 						if (currCamera == 0) cy = cy + 0.2;
 						break;
 					case 87:
-						elevation = elevation + 0.2;
+						if(currCamera == 0) elevation = elevation + 0.2;
 						break;
 					case 83:
-						elevation = elevation - 0.2;
+						if(currCamera == 0) elevation = elevation - 0.2;
 						break;
 				}
 			}
@@ -374,33 +376,6 @@ var utils = {
 		window.addEventListener("keyup", keyFunctionUp, false);
 		window.addEventListener("keydown", keyFunctionDown, false);
 	},
-
-
-	//mouse event listeners
-	doMouseDown: function (event) {
-		lastMouseX = event.pageX;
-		lastMouseY = event.pageY;
-		mouseState = true;
-	},
-	doMouseUp: function(event) {
-		lastMouseX = -100;
-		lastMouseY = -100;
-		mouseState = false;
-	},
-	doMouseMove : function (event) {
-		if(mouseState) {
-			var dx = event.pageX - lastMouseX;
-			var dy = lastMouseY - event.pageY;
-			lastMouseX = event.pageX;
-			lastMouseY = event.pageY;
-			
-			if((dx != 0) || (dy != 0)) {
-				angle = angle - 0.3 * dx;
-				elevation = elevation - 0.3 * dy;
-			}
-		}
-	},
-
 
 	//*** MATH LIBRARY
 
@@ -848,6 +823,37 @@ var utils = {
 		perspective[15] = 0.0;
 
 		return perspective;
+	},
+
+	//mouse event listeners
+	doMouseDown: function (event) {
+		lastMouseX = event.pageX;
+		lastMouseY = event.pageY;
+		mouseState = true;
+	},
+	doMouseUp: function(event) {
+		lastMouseX = -100;
+		lastMouseY = -100;
+		mouseState = false;
+	},
+	doMouseMove : function (event) {
+		if(mouseState) {
+			var dx = event.pageX - lastMouseX;
+			var dy = lastMouseY - event.pageY;
+			lastMouseX = event.pageX;
+			lastMouseY = event.pageY;
+			
+			if(currCamera == 0){
+				if ((dx != 0) || (dy != 0)) {
+					angle = angle - 0.3 * dx;
+					elevation = elevation - 0.3 * dy;
+				}
+			} else {
+				if ( dx != 0) {
+					rotateCamera(dx);
+				}
+			}
+		}
 	}
 
 }
