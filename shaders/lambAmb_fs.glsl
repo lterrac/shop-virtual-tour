@@ -25,18 +25,18 @@ uniform vec4 pointLightColor;
 uniform float pointLightTarget;
 uniform float pointLightDecay;
 //spotlights
-uniform vec4 spotLight0Color;
-uniform vec3 spotLight0Pos;
-uniform vec3 spotLight0Dir;
-uniform float spotLight0Decay;
-uniform float spotLight0Target;
-uniform float spotLight0ConeIn;
-uniform float spotLight0ConeOut;
+uniform vec4 spotLightColor;
+uniform vec3 spotLightPos;
+uniform vec3 spotLightTargetPos;
+uniform float spotLightDecay;
+uniform float spotLightTarget;
+uniform float spotLightConeIn;
+uniform float spotLightConeOut;
 
 //type of lights
 vec4 compSpotLightColor(vec4 lightColor,vec3 lightPos, vec3 lightDir,float decay, float target, float coneIn, float coneOut){
-  float cosOut = cos(radians(spotLight0ConeOut / 2.0));
-	float cosIn = cos(radians(spotLight0ConeOut * spotLight0ConeIn / 2.0));
+  float cosOut = cos(radians(spotLightConeOut / 2.0));
+	float cosIn = cos(radians(spotLightConeOut * spotLightConeIn / 2.0));
   vec3 direction = normalize(lightPos - fs_pos);
   float cosAngle = dot(direction, lightDir);
 
@@ -68,6 +68,7 @@ void main() {
   vec4 texture_col = texture(u_texture, fs_uv);
   vec3 normalVec = normalize(fs_normal);
   vec3 eyedirVec = normalize(eyePos - fs_pos);
+  vec3 spotLightDir = normalize(spotLightTargetPos - spotLightPos);
 
   //direct
   vec3 dirLightRelDir = dirLightDirection;
@@ -75,24 +76,24 @@ void main() {
   vec3 pointLightRelDir = normalize(pointLightPos - fs_pos);
   vec4 pointLightCol = compPointLightColor(pointLightColor, pointLightPos, pointLightDecay, pointLightTarget);
   //spotlight
-  vec4 spotLight0Col = compSpotLightColor(spotLight0Color,spotLight0Pos,spotLight0Dir,spotLight0Decay,spotLight0Target,spotLight0ConeIn,spotLight0ConeOut);
-  vec3 spotLight0RelDir = normalize(spotLight0Pos - fs_pos);
+  vec4 spotLightCol = compSpotLightColor(spotLightColor,spotLightPos,spotLightDir,spotLightDecay,spotLightTarget,spotLightConeIn,spotLightConeOut);
+  vec3 spotLightRelDir = normalize(spotLightPos - fs_pos);
 
   //diffuse components
   vec4 diffDirectLight = diffuseLambert(dirLightColor,normalVec,dirLightRelDir);
   vec4 diffPointLight =  diffuseLambert(pointLightCol,normalVec,pointLightRelDir);
-  vec4 diffSpotLight0 = diffuseLambert(spotLight0Col,normalVec,spotLight0Dir);
+  vec4 diffSpotLight = diffuseLambert(spotLightCol,normalVec,spotLightDir);
 
   vec4 diffColor = diffuseLightColor * (1.0 - mix_texture) + texture_col * mix_texture;
-  vec4 diffuse = diffColor * (diffDirectLight + diffPointLight + diffSpotLight0);
+  vec4 diffuse = diffColor * (diffDirectLight + diffPointLight + diffSpotLight);
 
   //specular components
 
   vec4 specDirectLight = compSpecular(dirLightRelDir, dirLightColor, normalVec, eyedirVec);
   vec4 specPointLight = compSpecular(pointLightRelDir, pointLightCol, normalVec, eyedirVec);
-  vec4 specSpotLight0 = compSpecular(spotLight0RelDir, spotLight0Col, normalVec, eyedirVec);
+  vec4 specSpotLight = compSpecular(spotLightRelDir, spotLightCol, normalVec, eyedirVec);
   
-  vec4 specular = (specDirectLight + specPointLight + specSpotLight0) * specularLightColor;
+  vec4 specular = (specDirectLight + specPointLight + specSpotLight) * specularLightColor;
 
   //ambient component
   vec4 ambient = ambientLightColor * texture_col;

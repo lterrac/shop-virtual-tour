@@ -45,12 +45,14 @@ var textures = new Map();
 var ambientON;
 var directON;
 var pointLightON;
-var numOfSpotlights;
 var specularType;
 var dirLightAlpha;
 var dirLightBeta;
 
 //lights
+var warmLight;
+var coldLight;
+var lowLight;
 //ambient light
 var ambientLightColor;
 //point light
@@ -298,7 +300,6 @@ function initParams() {
     ambientON = true;
     directON = true;
     pointLightON = true;
-    numOfSpotlights = 1;
     dirLightAlpha = -utils.degToRad(270);
     dirLightBeta = -utils.degToRad(270);
 
@@ -307,30 +308,29 @@ function initParams() {
 
 
     //lights
+    warmLight = [230 / 255, 230 / 255, 230 / 255, 1.0];
+    coldLight = [200 / 255, 220 / 255, 220 / 255, 1.0];
+    lowLight = [50 / 255, 50 / 255, 50 / 255, 1.0];
     //ambient light
-    ambientLightColor = [50 / 255, 50 / 255, 50 / 255, 1.0];
+    ambientLightColor = lowLight;
     //point light
-    pointLightColor = [254 / 255, 244 / 255, 229 / 255, 1.0];
-    pointLightPosition = [-0.1, 1.0, 2.0];
+    pointLightColor = warmLight;
+    pointLightPosition = [0.0, 4., 0.0];
     pointLightDecay = 1.0;
     pointLightTarget = 1.0;
     //spot lights
-    spotlights = new Map();
-    for (i = 0; i < numOfSpotlights; i++) {
-        spotlights.set('spotLight' + i, {});
-        spotlights.get('spotLight' + i).name = 'spotLight' + i;
-        spotlights.get('spotLight' + i).color = [230 / 255, 230 / 255, 230 / 255, 1.0];
-        spotlights.get('spotLight' + i).position = [1.0, 1.0, 0.0];
-        spotlights.get('spotLight' + i).direction = [1.0, 0.1, 0.1];
-        spotlights.get('spotLight' + i).decay = 1.0;
-        spotlights.get('spotLight' + i).target = 1.0;
-        spotlights.get('spotLight' + i).coneIn = 30.0;
-        spotlights.get('spotLight' + i).coneOut = 60.0;
-        spotlights.get('spotLight' + i).On = true;
-
-    }
+    spotlight = {};
+    spotlight.name = 'spotLight';
+    spotlight.color = warmLight;
+    spotlight.position = [0.0,4.5,0.0];
+    spotlight.targetPosition = [0,0,0];
+    spotlight.decay = 1.0;
+    spotlight.target = 2.5;
+    spotlight.coneIn = 20.0;
+    spotlight.coneOut = 60.0;
+    spotlight.On = true;
     //direct light
-    dirLightColor = [0.9, 1.0, 1.0, 1.0];
+    dirLightColor = coldLight;
     dirLightDirection = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
     Math.sin(dirLightAlpha),
     Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
@@ -396,17 +396,15 @@ function getUniformLocations() {
     pointLightPositionHandle = gl.getUniformLocation(program, 'pointLightPos');
     pointLightTargetHandle = gl.getUniformLocation(program, 'pointLightTarget');
     pointLightDecayHandle = gl.getUniformLocation(program, 'pointLightDecay');
-    spotlights.forEach(spotlight => {
-        var name = spotlight.name;
-        spotlight.colorHandle = gl.getUniformLocation(program, name + 'Color');
-        spotlight.positionHandle = gl.getUniformLocation(program, name + 'Pos');
-        spotlight.directionHandle = gl.getUniformLocation(program, name + 'Dir');
-        spotlight.decayHandle = gl.getUniformLocation(program, name + 'Decay');
-        spotlight.targetHandle = gl.getUniformLocation(program, name + 'Target');
-        spotlight.coneInHandle = gl.getUniformLocation(program, name + 'ConeIn');
-        spotlight.coneOutHandle = gl.getUniformLocation(program, name + 'ConeOut');
-
-    });
+    
+    var name = spotlight.name;
+    spotlight.colorHandle = gl.getUniformLocation(program, name + 'Color');
+    spotlight.positionHandle = gl.getUniformLocation(program, name + 'Pos');
+    spotlight.targetPositionHandle = gl.getUniformLocation(program, name + 'TargetPos');
+    spotlight.decayHandle = gl.getUniformLocation(program, name + 'Decay');
+    spotlight.targetHandle = gl.getUniformLocation(program, name + 'Target');
+    spotlight.coneInHandle = gl.getUniformLocation(program, name + 'ConeIn');
+    spotlight.coneOutHandle = gl.getUniformLocation(program, name + 'ConeOut');
 
 
 }
@@ -454,6 +452,7 @@ async function loadModel(furnitureConfig) {
     //Create orbit
     let orbit = new Furniture();
     orbit.name = furnitureConfig.name + " orbit";
+    orbit.angle = 0;
     orbit.localMatrix = utils.multiplyMatrices(
         utils.multiplyMatrices(
             utils.MakeTranslateMatrix(0.0, 2.0, 3.0),
@@ -462,7 +461,7 @@ async function loadModel(furnitureConfig) {
         utils.identityMatrix()
     );
     furniture.orbit = orbit;
-
+    
     model.rootnode.children.forEach(parsedChildren => {
         if (parsedChildren.meshes != undefined) {
             let component = new Furniture();
@@ -716,6 +715,31 @@ function updatePerspective() {
 
 function switchCamera() {
     currCamera = (currCamera + 1) % (furnitures.size + 1);
+    if(currCamera != 0){
+        updateSpotlightPosition();
+        spotlight.color = warmLight;
+    } else {
+        spotlight.color = [0,0,0,0];
+    }
+}
+
+function rotateCamera(dx) {
+    furniture = furnitures.get(cameraTour[currCamera]);
+    furniture.orbit.angle += (0.3 * dx);
+    furniture.orbit.localMatrix =
+        utils.multiplyMatrices(
+            utils.MakeRotateYMatrix(furniture.orbit.angle),
+            utils.MakeTranslateMatrix(0.0, 3.0, 3.5)
+        )
+
+}
+
+function updateSpotlightPosition() {
+    if (currCamera != 0) {
+        furniture = furnitures.get(cameraTour[currCamera]);
+        spotlight.position = furniture.getOrbitCoordinates();
+        spotlight.targetPosition = furniture.getWorldCoordinates();
+    }
 }
 
 function sendUniformsToGPU() {
