@@ -6,9 +6,10 @@ var gl;
 var rotation = (Quaternion.ONE); 
 
 // control vars camera movement
-var cx = 0.5;
-var cy = 2.0;
-var cz = 1.0;
+var initCameraPosition = [0.5,2.0,1.0];
+var cx = initCameraPosition[0];
+var cy = initCameraPosition[1];
+var cz = initCameraPosition[2];
 var currCamera;
 var cameraTour;
 
@@ -310,7 +311,7 @@ function initParams() {
     //lights
     warmLight = [230 / 255, 230 / 255, 230 / 255, 1.0];
     coldLight = [200 / 255, 220 / 255, 220 / 255, 1.0];
-    lowLight = [50 / 255, 50 / 255, 50 / 255, 1.0];
+    lowLight = [30 / 255, 30 / 255, 30 / 255, 1.0];
     //ambient light
     ambientLightColor = lowLight;
     //point light
@@ -351,17 +352,13 @@ async function compileAndLinkShaders() {
     baseDir = window.location.href.replace(page, '');
     shaderDir = baseDir + "shaders/";
 
-    //static texture
-    shaders.set('static', {});
-    shaders.get('static').vs = shaderDir + 'vs.glsl';
-    shaders.get('static').fs = shaderDir + 'fs.glsl';
-    //direct light
-    shaders.set('lambAmb', {});
-    shaders.get('lambAmb').vs = shaderDir + 'lambAmb_vs.glsl';
-    shaders.get('lambAmb').fs = shaderDir + 'lambAmb_fs.glsl';
+    shaders.set('basic', {});
+    shaders.get('basic').vs = shaderDir + 'vs.glsl';
+    shaders.get('basic').fs = shaderDir + 'fs.glsl';
+   
 
 
-    currentShader = 'lambAmb';
+    currentShader = 'basic';
 
     await utils.loadFiles([shaders.get(currentShader).vs, shaders.get(currentShader).fs], function (shaderText) {
         program = utils.createAndCompileShaders(gl, shaderText);
@@ -697,11 +694,10 @@ function updateTransformationMatrices(furniture) {
 }
 
 function updateView(furniture) {
-    if (cameraTour[currCamera] === 'FreeCamera') {
+    if (currCamera == 0) {
         viewMatrix =  utils.MakeView(cx, cy, cz, elevation, angle);
     } else {
-        //Invert to pass from camera matrix to view matrix
-        viewMatrix = utils.invertMatrix(utils.LookAt(furnitures.get(cameraTour[currCamera]).getOrbitCoordinates(), furnitures.get(cameraTour[currCamera]).getWorldCoordinates(), [0, 1, 0]));
+        viewMatrix = utils.invertMatrix(utils.LookAt([cx,cy,cz], furnitures.get(cameraTour[currCamera]).getWorldCoordinates(), [0, 1, 0]));
     }
 
     viewWorldMatrix = utils.multiplyMatrices(viewMatrix, furniture.worldMatrix);
@@ -715,15 +711,27 @@ function updatePerspective() {
 
 function switchCamera() {
     currCamera = (currCamera + 1) % (furnitures.size + 1);
-    if(currCamera != 0){
+    if (currCamera != 0) {
+        //Invert to pass from camera matrix to view matrix
+        let posInOrbit = furnitures.get(cameraTour[currCamera]).getOrbitCoordinates();
+        cx = posInOrbit[0];
+        cy = posInOrbit[1];
+        cz = posInOrbit[2];
+        //point spotlight to the furniture
         updateSpotlightPosition();
+        //turn on the spotlight
         spotlight.color = warmLight;
     } else {
-        spotlight.color = [0,0,0,0];
+        //set the camera position to the initial point
+        cx = initCameraPosition[0];
+        cy = initCameraPosition[1];
+        cz = initCameraPosition[2];
+        //turn off the spotlight
+        spotlight.color = [0, 0, 0, 0];
     }
 }
 
-function rotateCamera(dx) {
+function rotateCameraOnFurniture(dx) {
     furniture = furnitures.get(cameraTour[currCamera]);
     furniture.orbit.angle += (0.3 * dx);
     furniture.orbit.localMatrix =
@@ -731,13 +739,21 @@ function rotateCamera(dx) {
             utils.MakeRotateYMatrix(furniture.orbit.angle),
             utils.MakeTranslateMatrix(0.0, 3.0, 3.5)
         )
+    let posInOrbit = furnitures.get(cameraTour[currCamera]).getOrbitCoordinates();
+    cx = posInOrbit[0];
+    cy = posInOrbit[1];
+    cz = posInOrbit[2];
+    updateSpotlightPosition();
 
 }
 
 function updateSpotlightPosition() {
     if (currCamera != 0) {
         furniture = furnitures.get(cameraTour[currCamera]);
-        spotlight.position = furniture.getOrbitCoordinates();
+        camPosition = furniture.getOrbitCoordinates();
+        spotlight.position[0] =  camPosition[0];
+        spotlight.position[0] = 0;
+        spotlight.position[2] =  camPosition[2];
         spotlight.targetPosition = furniture.getWorldCoordinates();
     }
 }
@@ -761,16 +777,15 @@ function sendUniformsToGPU() {
     gl.uniform1f(pointLightDecayHandle, pointLightDecay);
     gl.uniform1f(pointLightTargetHandle, pointLightTarget);
     //spotlights
-    for (i = 0; i < numOfSpotlights; i++) {
-        var spotlight = spotlights.get('spotLight' + i);
-        gl.uniform4fv(spotlight.colorHandle, spotlight.color);
-        gl.uniform3fv(spotlight.positionHandle, spotlight.position);
-        gl.uniform3fv(spotlight.directionHandle, spotlight.direction);
-        gl.uniform1f(spotlight.decayHandle, spotlight.decay);
-        gl.uniform1f(spotlight.targetHandle, spotlight.target);
-        gl.uniform1f(spotlight.coneInHandle, spotlight.coneIn);
-        gl.uniform1f(spotlight.coneOutHandle, spotlight.coneOut);
-    }
+
+    gl.uniform4fv(spotlight.colorHandle, spotlight.color);
+    gl.uniform3fv(spotlight.positionHandle, spotlight.position);
+    gl.uniform3fv(spotlight.targetPositionHandle, spotlight.targetPosition);
+    gl.uniform1f(spotlight.decayHandle, spotlight.decay);
+    gl.uniform1f(spotlight.targetHandle, spotlight.target);
+    gl.uniform1f(spotlight.coneInHandle, spotlight.coneIn);
+    gl.uniform1f(spotlight.coneOutHandle, spotlight.coneOut);
+
 
 }
 utils.initInteraction();

@@ -242,46 +242,40 @@ var utils = {
 				keys[e.keyCode] = true;
 				switch (e.keyCode) {
 					case 37:
-						rvy = rvy + 0.5;
+						if (currCamera == 0) rvy = rvy + 0.5;
 						break;
 					case 39:
-						rvy = rvy - 0.5;
+						if (currCamera == 0) rvy = rvy - 0.5;
 						break;
 					case 38:
-						rvx = rvx + 0.5;
+						if (currCamera == 0) rvx = rvx + 0.5;
 						break;
 					case 40:
-						rvx = rvx - 0.5;
+						if (currCamera == 0) rvx = rvx - 0.5;
 						break;
 					case 81:
-						rvz = rvz + 0.5;
+						if (currCamera == 0) rvz = rvz + 0.5;
 						break;
 					case 69:
-						rvz = rvz - 0.5;
+						if (currCamera == 0) rvz = rvz - 0.5;
 						break;
 					case 65:
-						vx = vx - 0.2;
+						if (currCamera == 0) vx = vx - 0.2;
 						break;
 					case 68:
-						vx = vx + 0.2;
+						if (currCamera == 0) vx = vx + 0.2;
 						break;
 					case 82:
-						// if (currCamera == 0) {
-						// 	if (cy - 0.2 > 0.0)
-						vy = vy + 0.2;
-						// }
+						if (currCamera == 0) vy = vy + 0.2;
 						break;
 					case 70:
-						// if (currCamera == 0) {
-						// 	if (cy - 0.2 < 5.0)
-						vy = vy - 0.2;
-						// }
+						if (currCamera == 0) vy = vy - 0.2;
 						break;
 					case 87:
-						vz = vz - 0.2;
+						if (currCamera == 0) vz = vz - 0.2;
 						break;
 					case 83:
-						vz = vz + 0.2;
+						if (currCamera == 0) vz = vz + 0.2;
 						break;
 				}
 			}
@@ -294,16 +288,16 @@ var utils = {
 						switchCamera();
 						break;
 					case 37:
-						rvy = rvy - 0.5;
+						if (currCamera == 0) rvy = rvy - 0.5;
 						break;
 					case 39:
-						rvy = rvy + 0.5;
+						if (currCamera == 0) rvy = rvy + 0.5;
 						break;
 					case 38:
-						rvx = rvx - 0.5;
+						if (currCamera == 0) rvx = rvx - 0.5;
 						break;
 					case 40:
-						rvx = rvx + 0.5;
+						if (currCamera == 0) rvx = rvx + 0.5;
 						break;
 					case 49:
 						if (ambientON == false) {
@@ -348,30 +342,22 @@ var utils = {
 						}
 						break;
 					case 65:
-						vx = vx + 0.2;
+						if (currCamera == 0) vx = vx + 0.2;
 						break;
-					case 67: //c
-						currCamera = 0;
 					case 68:
-						vx = vx - 0.2;
+						if (currCamera == 0) vx = vx - 0.2;
 						break;
 					case 82:
-						// if (currCamera == 0) {
-						// 	if (cy - 0.2 > 0.0)
-						vy = vy - 0.2;
-						// }
+						 if (currCamera == 0) vy = vy - 0.2;
 						break;
 					case 70:
-						// if (currCamera == 0) {
-						// 	if (cy - 0.2 < 5.0)
-						vy = vy + 0.2;
-						// }
+						if (currCamera == 0) vy = vy + 0.2;
 						break;
 					case 87:
-						vz = vz + 0.2;
+						if (currCamera == 0) vz = vz + 0.2;
 						break;
 					case 83:
-						vz = vz - 0.2;
+						if (currCamera == 0) vz = vz - 0.2;
 						break;
 				}
 			}
@@ -854,7 +840,7 @@ var utils = {
 				}
 			} else {
 				if ( dx != 0) {
-					rotateCamera(dx);
+					rotateCameraOnFurniture(dx);
 				}
 			}
 		}
