@@ -25,25 +25,26 @@
                 <p>
                     <h2> Shop Virtual Tour </h2>
                 </p>
-                <p><b> Radio buttons </b></p>
+                <p><b> Cameras </b></p>
                 <form>
-                    <!-- TODO cosa sono id e name? -->
-                    <input type="radio" name="light" id="yesl" onchange="onRadioButtonChange(this.value);" value="1" checked> Option 1 <br />
-                    <input type="radio" name="light" onchange="onRadioButtonChange(this.value);" value="2"> Option 2 <br />
-                    <input type="radio" name="light" onchange="onRadioButtonChange(this.value);" value="3"> Option 3 <br />
+                    <div id="cameras">
+                        <input type="radio" name="cameras" onchange='setCamera("Free camera");' checked> Free camera <br />
+                    </div>
                 </form>
                 <p><b> Ligths </b></p>
-                <input type="checkbox" id="chbx" onclick="toggleAmbient();" checked />Ambient<br/>
-                <input type="checkbox" id="chbx" onclick="toggleDirect();" checked />Direct<br/>
-                <input type="checkbox" id="chbx" onclick="togglePointLight();" checked />Point Light<br/>
-                <input type="checkbox" id="chbx" onclick="toggleSpotLight();" checked />Spot Light<br/>
-                <p><b> Drop-down list</b></p>
+                <div id="lights">
+                    <input type="checkbox" id="chbx" onclick="toggleAmbient();" checked />Ambient<br />
+                    <input type="checkbox" id="chbx" onclick="toggleDirect();" checked />Direct<br />
+                    <input type="checkbox" id="chbx" onclick="togglePointLight();" checked />Point Light<br />
+                    <input type="checkbox" id="chbx" onclick="toggleSpotLight();" checked />Spot Light<br />
+                </div>
+                <p><b> Textures</b></p>
                 <!-- TODO name son giusti? -->
                 <select id="drop-down" name="" onchange="onDropdownChange(this.value);">
-          <option value="1" selected>Option 1</option>
-          <option value="2">Option 2</option>
-          <option value="3">Option 3</option>
-        </select>
+                    <option value="1" selected>Option 1</option>
+                    <option value="2">Option 2</option>
+                    <option value="3">Option 3</option>
+                </select>
             </td>
         </tr>
     </table>

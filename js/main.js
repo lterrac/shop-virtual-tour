@@ -116,7 +116,7 @@ var pointLightTargetHandle;
  * Furnitures initial configuration
  */
 var furnituresConfig = [{
-        name: 'bed',
+        name: 'Bed',
         type: 'JSON',
         imageType: '.png',
         initCoords: utils.MakeTranslateMatrix(-1.0, 0.0, -0.5),
@@ -124,7 +124,7 @@ var furnituresConfig = [{
         initRotation: utils.MakeRotateYMatrix(30),
     },
     {
-        name: 'bed_2',
+        name: 'Bed_2',
         type: 'JSON',
         imageType: '.png',
         initCoords: utils.MakeTranslateMatrix(-3.0, 0.0, -2.5),
@@ -132,7 +132,7 @@ var furnituresConfig = [{
         initRotation: utils.MakeRotateYMatrix(30),
     },
     {
-        name: 'closet',
+        name: 'Closet',
         type: 'JSON',
         imageType: '.png',
         initCoords: utils.MakeTranslateMatrix(3.0, 0.6, -2.5),
@@ -140,7 +140,7 @@ var furnituresConfig = [{
         initRotation: utils.MakeRotateYMatrix(0),
     },
     {
-        name: 'book-shelf',
+        name: 'Book Shelf',
         type: 'JSON',
         imageType: '.jpg',
         initCoords: utils.MakeTranslateMatrix(-9.8, 0.0, -2.5),
@@ -148,7 +148,7 @@ var furnituresConfig = [{
         initRotation: utils.MakeRotateYMatrix(0),
     },
     {
-        name: 'chair',
+        name: 'Chair',
         type: 'JSON',
         imageType: '.png',
         initCoords: utils.MakeTranslateMatrix(3.0, 0.0, -5.5),
@@ -242,6 +242,8 @@ var root;
  * Initialize the program and start drawing the scene
  */
 async function main() {
+    setGUI();
+
     getCanvas();
 
     await initializeProgram();
@@ -253,6 +255,16 @@ async function main() {
 
     drawScene();
 
+}
+
+function setGUI() {
+    furnituresConfig.forEach(furniture => {
+        if (furniture.name != 'Room') {
+            let cameras = document.getElementById("cameras").innerHTML
+            cameras += `<input type="radio" name="cameras" onchange='setCamera("${furniture.name}")';"> ${furniture.name} camera <br />`
+            document.getElementById("cameras").innerHTML = cameras
+        }
+    });
 }
 
 function getCanvas() {
@@ -296,7 +308,7 @@ function initParams() {
     dirLightBeta = -utils.degToRad(270);
 
     currCamera = 0;
-    cameraTour = ['FreeCamera'];
+    cameraTour = ['Free camera'];
 
 
     //lights
@@ -686,8 +698,7 @@ function updatePerspective() {
     normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldMatrix));
 }
 
-function switchCamera() {
-    currCamera = (currCamera + 1) % (furnitures.size + 1);
+function switchCamera(currCamera) {
     if (currCamera != 0) {
         //Invert to pass from camera matrix to view matrix
         let posInOrbit = furnitures.get(cameraTour[currCamera]).getOrbitCoordinates();
@@ -815,4 +826,18 @@ function toggleSpotLight() {
         spotlight.On = false;
         //console.log('spotlight off');
     }
+}
+
+//Camera GUI function
+
+function setCamera(camera) {
+    console.log(camera);
+
+    currCamera = cameraTour.indexOf(camera);
+    switchCamera(currCamera);
+}
+
+function nextCamera() {
+    currCamera = (currCamera + 1) % (furnitures.size + 1);
+    switchCamera(currCamera);
 }
