@@ -412,7 +412,6 @@ async function loadModels() {
     for (const furnitureConfig in furnituresConfig) {
         await loadModel(furnituresConfig[furnitureConfig]);
     }
-
 }
 
 async function loadModel(furnitureConfig) {
@@ -506,10 +505,6 @@ async function loadModel(furnitureConfig) {
 
 
             let texture = gl.createTexture();
-            // gl.activeTexture(gl.TEXTURE0);
-            // gl.bindTexture(gl.TEXTURE_2D, texture);
-            // gl.texImage2D(gl.TEXTURE_2D, 1, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-            //     new Uint8Array([0, 0, 255, 255]));
 
 
             if (textures.has(component.textureImageName)) {
@@ -540,6 +535,10 @@ async function loadModel(furnitureConfig) {
 function setTexture(image, texture) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    console.log("image");
+    console.log(image);
+
+
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -840,4 +839,30 @@ function setCamera(camera) {
 function nextCamera() {
     currCamera = (currCamera + 1) % (furnitures.size + 1);
     switchCamera(currCamera);
+}
+
+// Texture GUI function
+
+function changeTexture(imageName) {
+    let furniture = furnitures.get(cameraTour[currCamera]);
+    let image = new Image();
+    var path = window.location.pathname;
+    var page = path.split("/").pop();
+    baseDir = window.location.href.replace(page, '');
+    modelsDir = baseDir + "models/";
+
+    console.log(modelsDir + furniture.name + "/" + imageName + ".webp");
+
+    image.onload = function() {
+        furniture.children.forEach(component => {
+            if (component.texture) {
+                console.log("image");
+                console.log(image.src);
+
+                setTexture(image, component.texture)
+            }
+        });
+    };
+
+    image.src = modelsDir + furniture.name + "/" + imageName + ".webp";
 }

@@ -38,13 +38,14 @@
                     <input type="checkbox" id="chbx" onclick="togglePointLight();" checked />Point Light<br />
                     <input type="checkbox" id="chbx" onclick="toggleSpotLight();" checked />Spot Light<br />
                 </div>
-                <p><b> Textures</b></p>
-                <!-- TODO name son giusti? -->
-                <select id="drop-down" name="" onchange="onDropdownChange(this.value);">
-                    <option value="1" selected>Option 1</option>
-                    <option value="2">Option 2</option>
-                    <option value="3">Option 3</option>
-                </select>
+                <p id="textures" style="visibility: visible;">
+                    <b> Textures</b>
+                    <select id="drop-down" onchange='changeTexture("bianco");'>
+                        <option value="1" selected>Option 1</option>
+                        <option value="bianco">Option 2</option>
+                        <option value="3">Option 3</option>
+                    </select>
+                </p>
             </td>
         </tr>
     </table>
