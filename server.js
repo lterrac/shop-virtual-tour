@@ -11,9 +11,6 @@ let serverPort = process.env.PORT || 8000;
 
 app.set("port", serverPort);
 
-initSqlDB();
-initDb();
-
 /* Start the server on port 8000 */
 app.listen(serverPort, function() {
     console.log(`Your app is ready at port ${serverPort}`);
