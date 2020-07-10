@@ -3,10 +3,10 @@
  */
 var program;
 var gl;
-var rotation = (Quaternion.ONE); 
+var rotation = (Quaternion.ONE);
 
 // control vars camera movement
-var initCameraPosition = [0.5,2.0,1.0];
+var initCameraPosition = [0.5, 2.0, 1.0];
 var cx = initCameraPosition[0];
 var cy = initCameraPosition[1];
 var cz = initCameraPosition[2];
@@ -35,7 +35,8 @@ var roll = 0.01;
  */
 var delta = 0.3;
 var mouseState = false;
-var lastMouseX = -100, lastMouseY = -100;
+var lastMouseX = -100,
+    lastMouseY = -100;
 
 /**
  * Texture map
@@ -114,12 +115,11 @@ var pointLightTargetHandle;
 /**
  * Furnitures initial configuration
  */
-var furnituresConfig = [
-    {
+var furnituresConfig = [{
         name: 'bed',
         type: 'JSON',
         imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix(- 1.0, 0.0, - 0.5),
+        initCoords: utils.MakeTranslateMatrix(-1.0, 0.0, -0.5),
         initScale: utils.MakeScaleMatrix(0.8),
         initRotation: utils.MakeRotateYMatrix(30),
     },
@@ -127,7 +127,7 @@ var furnituresConfig = [
         name: 'bed_2',
         type: 'JSON',
         imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix(- 3.0, 0.0, - 2.5),
+        initCoords: utils.MakeTranslateMatrix(-3.0, 0.0, -2.5),
         initScale: utils.MakeScaleMatrix(0.9),
         initRotation: utils.MakeRotateYMatrix(30),
     },
@@ -135,7 +135,7 @@ var furnituresConfig = [
         name: 'closet',
         type: 'JSON',
         imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix(3.0, 0.6, - 2.5),
+        initCoords: utils.MakeTranslateMatrix(3.0, 0.6, -2.5),
         initScale: utils.MakeScaleMatrix(1),
         initRotation: utils.MakeRotateYMatrix(0),
     },
@@ -143,7 +143,7 @@ var furnituresConfig = [
         name: 'book-shelf',
         type: 'JSON',
         imageType: '.jpg',
-        initCoords: utils.MakeTranslateMatrix(-10.0, 0.0, - 2.5),
+        initCoords: utils.MakeTranslateMatrix(-9.8, 0.0, -2.5),
         initScale: utils.MakeScaleMatrix(0.8),
         initRotation: utils.MakeRotateYMatrix(0),
     },
@@ -151,7 +151,7 @@ var furnituresConfig = [
         name: 'chair',
         type: 'JSON',
         imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix(3.0, 0.0, - 5.5),
+        initCoords: utils.MakeTranslateMatrix(3.0, 0.0, -5.5),
         initScale: utils.MakeScaleMatrix(0.01),
         initRotation: utils.MakeRotateXMatrix(-90),
     },
@@ -206,12 +206,9 @@ class Furniture {
 
     updateWorldMatrix(matrix) {
         if (matrix) {
-            console.log("a " + this.name);
             // a matrix was passed in so do the math
             this.worldMatrix = utils.multiplyMatrices(matrix, this.localMatrix);
         } else {
-            console.log("b " + this.name);
-
             // no matrix was passed in so just copy.
             utils.copy(this.localMatrix, this.worldMatrix);
         };
@@ -224,7 +221,7 @@ class Furniture {
         }
 
         // now process all the children
-        this.children.forEach(function (child) {
+        this.children.forEach(function(child) {
             child.updateWorldMatrix(worldMatrix);
         });
     }
@@ -245,8 +242,6 @@ var root;
  * Initialize the program and start drawing the scene
  */
 async function main() {
-    console.log("start program");
-
     getCanvas();
 
     await initializeProgram();
@@ -279,13 +274,9 @@ function getCanvas() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);
 
-    console.log("canvas configured");
-
 }
 
 async function initializeProgram() {
-    console.log("init webgl program");
-
     initParams();
 
     await compileAndLinkShaders();
@@ -323,8 +314,8 @@ function initParams() {
     spotlight = {};
     spotlight.name = 'spotLight';
     spotlight.color = warmLight;
-    spotlight.position = [0.0,4.5,0.0];
-    spotlight.targetPosition = [0,0,0];
+    spotlight.position = [0.0, 4.5, 0.0];
+    spotlight.targetPosition = [0, 0, 0];
     spotlight.decay = 1.0;
     spotlight.target = 2.5;
     spotlight.coneIn = 20.0;
@@ -333,8 +324,8 @@ function initParams() {
     //direct light
     dirLightColor = coldLight;
     dirLightDirection = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
-    Math.sin(dirLightAlpha),
-    Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
+        Math.sin(dirLightAlpha),
+        Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
     ];
 
 
@@ -355,16 +346,15 @@ async function compileAndLinkShaders() {
     shaders.set('basic', {});
     shaders.get('basic').vs = shaderDir + 'vs.glsl';
     shaders.get('basic').fs = shaderDir + 'fs.glsl';
-   
+
 
 
     currentShader = 'basic';
 
-    await utils.loadFiles([shaders.get(currentShader).vs, shaders.get(currentShader).fs], function (shaderText) {
+    await utils.loadFiles([shaders.get(currentShader).vs, shaders.get(currentShader).fs], function(shaderText) {
         program = utils.createAndCompileShaders(gl, shaderText);
     });
     gl.useProgram(program);
-    console.log("compiled shaders");
 }
 
 function getAttributeLocations() {
@@ -393,7 +383,7 @@ function getUniformLocations() {
     pointLightPositionHandle = gl.getUniformLocation(program, 'pointLightPos');
     pointLightTargetHandle = gl.getUniformLocation(program, 'pointLightTarget');
     pointLightDecayHandle = gl.getUniformLocation(program, 'pointLightDecay');
-    
+
     var name = spotlight.name;
     spotlight.colorHandle = gl.getUniformLocation(program, name + 'Color');
     spotlight.positionHandle = gl.getUniformLocation(program, name + 'Pos');
@@ -408,15 +398,12 @@ function getUniformLocations() {
 
 async function loadModels() {
     for (const furnitureConfig in furnituresConfig) {
-        console.log("model " + furnituresConfig[furnitureConfig]);
         await loadModel(furnituresConfig[furnitureConfig]);
     }
 
-    console.log("loaded files");
 }
 
 async function loadModel(furnitureConfig) {
-    console.log("load " + furnitureConfig.name);
 
     var path = window.location.pathname;
     var page = path.split("/").pop();
@@ -426,7 +413,7 @@ async function loadModel(furnitureConfig) {
     var model;
 
     await utils.get_json("models/" + furnitureConfig.name + "/" + furnitureConfig.name + ".json",
-        function (parsedModel) {
+        function(parsedModel) {
             model = parsedModel;
         });
 
@@ -438,12 +425,9 @@ async function loadModel(furnitureConfig) {
     furniture.localMatrix = utils.multiplyMatrices(
         utils.multiplyMatrices(
             utils.multiplyMatrices(
-                furnitureConfig.initCoords
-                , furnitureConfig.initRotation
-            )
-            , furnitureConfig.initScale
-        )
-        , model.rootnode.transformation
+                furnitureConfig.initCoords, furnitureConfig.initRotation
+            ), furnitureConfig.initScale
+        ), model.rootnode.transformation
     );
 
     //Create orbit
@@ -458,7 +442,7 @@ async function loadModel(furnitureConfig) {
         utils.identityMatrix()
     );
     furniture.orbit = orbit;
-    
+
     model.rootnode.children.forEach(parsedChildren => {
         if (parsedChildren.meshes != undefined) {
             let component = new Furniture();
@@ -515,14 +499,10 @@ async function loadModel(furnitureConfig) {
             // gl.texImage2D(gl.TEXTURE_2D, 1, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
             //     new Uint8Array([0, 0, 255, 255]));
 
-            
-            if (textures.has(component.textureImageName)){
-                console.log("existing texture " + component.textureImageName);
-                
-                setTexture(textures.get(component.textureImageName),texture);
+
+            if (textures.has(component.textureImageName)) {
+                setTexture(textures.get(component.textureImageName), texture);
             } else {
-                console.log("new texture " + component.textureImageName);
-                
                 let image = new Image();
                 var path = window.location.pathname;
                 var page = path.split("/").pop();
@@ -530,23 +510,19 @@ async function loadModel(furnitureConfig) {
                 modelsDir = baseDir + "models/";
 
                 image.onload = function() {
-                    console.log("new " + component.textureImageName);
-                    
                     setTexture(image, texture);
                     textures.set(component.textureImageName, image);
                 };
-    
-                image.src = modelsDir + furniture.name + "/" + component.textureImageName; 
-    
-                
-    
+
+                image.src = modelsDir + furniture.name + "/" + component.textureImageName;
+
+
+
             }
             component.texture = texture;
         }
     });
 
-    console.log("cached images ");
-    console.log(textures);
 }
 
 function setTexture(image, texture) {
@@ -579,14 +555,14 @@ function drawScene() {
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-   
+
 
     dynamicCamera();
     //Draw the room
     root.updateWorldMatrix(worldMatrix);
 
     updateTransformationMatrices(root);
-    
+
     sendUniformsToGPU();
 
     root.children.filter(children => children.indices)
@@ -597,7 +573,7 @@ function drawScene() {
     furnitures.forEach(furniture => {
         updateTransformationMatrices(furniture);
         furniture.children.forEach(component => {
-        
+
             sendUniformsToGPU();
             drawElement(component);
 
@@ -607,16 +583,17 @@ function drawScene() {
 
     window.requestAnimationFrame(drawScene);
 }
+
 function dynamicCamera() {
 
-    delta = Quaternion.fromEuler(utils.degToRad(rvz), 
-    utils.degToRad(-rvx), 
-    utils.degToRad(rvy));
+    delta = Quaternion.fromEuler(utils.degToRad(rvz),
+        utils.degToRad(-rvx),
+        utils.degToRad(rvy));
 
     rotation = rotation.mul(delta);
 
 
-    
+
     dvecmat = utils.transposeMatrix(viewMatrix);
     dvecmat[12] = dvecmat[13] = dvecmat[14] = 0.0;
     xaxis = [dvecmat[0], dvecmat[4], dvecmat[8]];
@@ -666,7 +643,7 @@ function dynamicCamera() {
     delta = utils.multiplyMatrixVector(dvecmat, [vx, vy, vz, 0.0]);
     cx += delta[0];
     cy += delta[1];
-    cz += delta[2];    
+    cz += delta[2];
 }
 
 function drawElement(furniture) {
@@ -695,9 +672,9 @@ function updateTransformationMatrices(furniture) {
 
 function updateView(furniture) {
     if (currCamera == 0) {
-        viewMatrix =  utils.MakeView(cx, cy, cz, elevation, angle);
+        viewMatrix = utils.MakeView(cx, cy, cz, elevation, angle);
     } else {
-        viewMatrix = utils.invertMatrix(utils.LookAt([cx,cy,cz], furnitures.get(cameraTour[currCamera]).getWorldCoordinates(), [0, 1, 0]));
+        viewMatrix = utils.invertMatrix(utils.LookAt([cx, cy, cz], furnitures.get(cameraTour[currCamera]).getWorldCoordinates(), [0, 1, 0]));
     }
 
     viewWorldMatrix = utils.multiplyMatrices(viewMatrix, furniture.worldMatrix);
@@ -751,9 +728,9 @@ function updateSpotlightPosition() {
     if (currCamera != 0) {
         furniture = furnitures.get(cameraTour[currCamera]);
         camPosition = furniture.getOrbitCoordinates();
-        spotlight.position[0] =  camPosition[0];
+        spotlight.position[0] = camPosition[0];
         spotlight.position[0] = 0;
-        spotlight.position[2] =  camPosition[2];
+        spotlight.position[2] = camPosition[2];
         spotlight.targetPosition = furniture.getWorldCoordinates();
     }
 }
@@ -790,3 +767,52 @@ function sendUniformsToGPU() {
 }
 utils.initInteraction();
 window.onload = main;
+
+// Lights function
+
+function toggleAmbient() {
+    if (ambientON == false) {
+        ambientLightColor = lowLight;
+        ambientON = true;
+    } else {
+        ambientLightColor = [0.0, 0.0, 0.0, 1.0];
+        ambientON = false;
+    }
+}
+
+
+function toggleDirect() {
+    if (directON == false) {
+        dirLightColor = coldLight;
+        directON = true;
+        //console.log('direct on');
+    } else {
+        dirLightColor = [0.0, 0.0, 0.0, 1.0];
+        directON = false;
+        //console.log('direct off');
+    }
+}
+
+function togglePointLight() {
+    if (pointLightON == false) {
+        pointLightColor = warmLight;
+        pointLightON = true;
+        //console.log('point on');
+    } else {
+        pointLightColor = [0.0, 0.0, 0.0, 1.0];
+        pointLightON = false;
+        //console.log('point off');
+    }
+}
+
+function toggleSpotLight() {
+    if (spotlight.On == false) {
+        spotlight.color = warmLight;
+        spotlight.On = true;
+        //console.log('spotlight on');
+    } else {
+        spotlight.color = [0.0, 0.0, 0.0, 1.0];
+        spotlight.On = false;
+        //console.log('spotlight off');
+    }
+}

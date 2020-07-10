@@ -2,36 +2,51 @@
 <html>
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Virtual Tour</title>
-  <style type="text/css">
-    body {
-      margin: 0;
-      background-color: gray;
-    }
-
-    canvas {
-      display: block;
-      background-color: white;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Virtual Tour</title>
+    <link rel="stylesheet" type="text/css" href="./css/style.css">
+    <!--Script imports-->
+    <script type="text/javascript" src="js/quaternion.min.js"></script>
+    <script type="text/javascript" src="js/webgl-obj-loader.min.js"></script>
+    <script type="text/javascript" src="js/utils.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
 </head>
 
 <body>
-  <div id="title">
-    <center>Virtual Tour</center>
-  </div>
-
-  <div id="canvas_id">
-    <canvas id="main_canvas"></canvas>
-  </div>
-
-  <!--Script imports-->
-  <script type="text/javascript" src="js/quaternion.min.js"></script>
-  <script type="text/javascript" src="js/webgl-obj-loader.min.js"></script>
-  <script type="text/javascript" src="js/utils.js"></script>
-  <script type="text/javascript" src="js/main.js"></script>
+    <table>
+        <tr>
+            <td>
+                <div id="canvas_id">
+                    <canvas id="main_canvas"></canvas>
+                </div>
+            </td>
+            <td style="background-color: white; font-family: courier; padding: 5px;">
+                <p>
+                    <h2> Shop Virtual Tour </h2>
+                </p>
+                <p><b> Radio buttons </b></p>
+                <form>
+                    <!-- TODO cosa sono id e name? -->
+                    <input type="radio" name="light" id="yesl" onchange="onRadioButtonChange(this.value);" value="1" checked> Option 1 <br />
+                    <input type="radio" name="light" onchange="onRadioButtonChange(this.value);" value="2"> Option 2 <br />
+                    <input type="radio" name="light" onchange="onRadioButtonChange(this.value);" value="3"> Option 3 <br />
+                </form>
+                <p><b> Ligths </b></p>
+                <input type="checkbox" id="chbx" onclick="toggleAmbient();" checked />Ambient<br/>
+                <input type="checkbox" id="chbx" onclick="toggleDirect();" checked />Direct<br/>
+                <input type="checkbox" id="chbx" onclick="togglePointLight();" checked />Point Light<br/>
+                <input type="checkbox" id="chbx" onclick="toggleSpotLight();" checked />Spot Light<br/>
+                <p><b> Drop-down list</b></p>
+                <!-- TODO name son giusti? -->
+                <select id="drop-down" name="" onchange="onDropdownChange(this.value);">
+          <option value="1" selected>Option 1</option>
+          <option value="2">Option 2</option>
+          <option value="3">Option 3</option>
+        </select>
+            </td>
+        </tr>
+    </table>
 </body>
 
 </html>
