@@ -197845,6 +197845,13 @@
 					,"type": 1
 					,"value": 1
 				}
+				,{
+					"key": "$tex.file"
+				   ,"semantic": 1
+				   ,"index": 0
+				   ,"type": 3
+				   ,"value": "sofa.jpg"
+			   }
 			]
 		}
 	]

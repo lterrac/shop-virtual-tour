@@ -119,31 +119,31 @@ var furnituresConfig = [
         name: 'bed',
         type: 'JSON',
         imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix(- 1.0, 0.0, - 0.5),
+        initCoords: utils.MakeTranslateMatrix(- 2.0, 0.0, - 4.5),
         initScale: utils.MakeScaleMatrix(0.8),
-        initRotation: utils.MakeRotateYMatrix(30),
+        initRotation: utils.MakeRotateYMatrix(0),
     },
     {
         name: 'bed_2',
         type: 'JSON',
         imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix(- 3.0, 0.0, - 2.5),
+        initCoords: utils.MakeTranslateMatrix( 2.0, 0.0, - 4.5),
         initScale: utils.MakeScaleMatrix(0.9),
-        initRotation: utils.MakeRotateYMatrix(30),
+        initRotation: utils.MakeRotateYMatrix(0),
     },
     {
         name: 'closet',
         type: 'JSON',
         imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix(3.0, 0.6, - 2.5),
-        initScale: utils.MakeScaleMatrix(1),
-        initRotation: utils.MakeRotateYMatrix(0),
+        initCoords: utils.MakeTranslateMatrix(5.0, 0.6, 7),
+        initScale: utils.MakeScaleMatrix(2),
+        initRotation: utils.MakeRotateYMatrix(-90),
     },
     {
         name: 'book-shelf',
         type: 'JSON',
         imageType: '.jpg',
-        initCoords: utils.MakeTranslateMatrix(-10.0, 0.0, - 2.5),
+        initCoords: utils.MakeTranslateMatrix(9.0, 0.0, - 2.5),
         initScale: utils.MakeScaleMatrix(0.8),
         initRotation: utils.MakeRotateYMatrix(0),
     },
@@ -151,9 +151,16 @@ var furnituresConfig = [
         name: 'chair',
         type: 'JSON',
         imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix(3.0, 0.0, - 5.5),
+        initCoords: utils.MakeTranslateMatrix(-4.0, 0.0,  2.5),
         initScale: utils.MakeScaleMatrix(0.01),
         initRotation: utils.MakeRotateXMatrix(-90),
+    },
+    {
+        name: 'Sofa',
+        type: 'JSON',
+        initCoords: utils.MakeTranslateMatrix(-6.0, -0.4, -6.0),
+        initScale: utils.MakeScaleMatrix(0.1),
+        initRotation: utils.MakeRotateYMatrix(0),
     },
     {
         name: 'Room',
@@ -206,11 +213,9 @@ class Furniture {
 
     updateWorldMatrix(matrix) {
         if (matrix) {
-            console.log("a " + this.name);
             // a matrix was passed in so do the math
             this.worldMatrix = utils.multiplyMatrices(matrix, this.localMatrix);
         } else {
-            console.log("b " + this.name);
 
             // no matrix was passed in so just copy.
             utils.copy(this.localMatrix, this.worldMatrix);
@@ -325,9 +330,9 @@ function initParams() {
     spotlight.color = warmLight;
     spotlight.position = [0.0,4.5,0.0];
     spotlight.targetPosition = [0,0,0];
-    spotlight.decay = 1.0;
+    spotlight.decay = 0;
     spotlight.target = 2.5;
-    spotlight.coneIn = 20.0;
+    spotlight.coneIn = 30.0;
     spotlight.coneOut = 60.0;
     spotlight.On = true;
     //direct light
@@ -364,7 +369,6 @@ async function compileAndLinkShaders() {
         program = utils.createAndCompileShaders(gl, shaderText);
     });
     gl.useProgram(program);
-    console.log("compiled shaders");
 }
 
 function getAttributeLocations() {
@@ -408,11 +412,9 @@ function getUniformLocations() {
 
 async function loadModels() {
     for (const furnitureConfig in furnituresConfig) {
-        console.log("model " + furnituresConfig[furnitureConfig]);
         await loadModel(furnituresConfig[furnitureConfig]);
     }
 
-    console.log("loaded files");
 }
 
 async function loadModel(furnitureConfig) {
@@ -517,11 +519,9 @@ async function loadModel(furnitureConfig) {
 
             
             if (textures.has(component.textureImageName)){
-                console.log("existing texture " + component.textureImageName);
                 
                 setTexture(textures.get(component.textureImageName),texture);
             } else {
-                console.log("new texture " + component.textureImageName);
                 
                 let image = new Image();
                 var path = window.location.pathname;
@@ -530,7 +530,6 @@ async function loadModel(furnitureConfig) {
                 modelsDir = baseDir + "models/";
 
                 image.onload = function() {
-                    console.log("new " + component.textureImageName);
                     
                     setTexture(image, texture);
                     textures.set(component.textureImageName, image);
@@ -545,8 +544,6 @@ async function loadModel(furnitureConfig) {
         }
     });
 
-    console.log("cached images ");
-    console.log(textures);
 }
 
 function setTexture(image, texture) {
@@ -744,6 +741,10 @@ function rotateCameraOnFurniture(dx) {
     cy = posInOrbit[1];
     cz = posInOrbit[2];
     updateSpotlightPosition();
+    console.log('spotlight pos: '+ spotlight.position);
+    console.log('camPosition: ' + furniture.getOrbitCoordinates());
+    console.log('spotlight target pos: '+ spotlight.targetPosition);
+    console.log('furn Position: ' + furniture.getWorldCoordinates());
 
 }
 
@@ -752,7 +753,7 @@ function updateSpotlightPosition() {
         furniture = furnitures.get(cameraTour[currCamera]);
         camPosition = furniture.getOrbitCoordinates();
         spotlight.position[0] =  camPosition[0];
-        spotlight.position[0] = 0;
+        spotlight.position[1] = camPosition[1];
         spotlight.position[2] =  camPosition[2];
         spotlight.targetPosition = furniture.getWorldCoordinates();
     }

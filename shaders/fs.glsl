@@ -82,7 +82,7 @@ void main() {
   //diffuse components
   vec4 diffDirectLight = diffuseLambert(dirLightColor,normalVec,dirLightRelDir);
   vec4 diffPointLight =  diffuseLambert(pointLightCol,normalVec,pointLightRelDir);
-  vec4 diffSpotLight = diffuseLambert(spotLightCol,normalVec,spotLightDir);
+  vec4 diffSpotLight = diffuseLambert(spotLightCol,normalVec,spotLightRelDir);
 
   vec4 diffColor = diffuseLightColor * (1.0 - mix_texture) + texture_col * mix_texture;
   vec4 diffuse = diffColor * (diffDirectLight + diffPointLight + diffSpotLight);
