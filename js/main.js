@@ -708,6 +708,7 @@ function switchCamera(currCamera) {
         updateSpotlightPosition();
         //turn on the spotlight
         spotlight.color = warmLight;
+        setTexturePanel(furnitures.get(cameraTour[currCamera]).name);
     } else {
         //set the camera position to the initial point
         cx = initCameraPosition[0];
@@ -715,6 +716,7 @@ function switchCamera(currCamera) {
         cz = initCameraPosition[2];
         //turn off the spotlight
         spotlight.color = [0, 0, 0, 0];
+        hideTexturePanel();
     }
 }
 
@@ -865,4 +867,36 @@ function changeTexture(imageName) {
     };
 
     image.src = modelsDir + furniture.name + "/" + imageName + ".webp";
+}
+
+function hideTexturePanel() {
+    document.getElementById("textures").style.setProperty("visibility", "hidden");
+
+    //Remove all elements from select
+    let sel = document.getElementById('texture-drop-down');
+    for (i = sel.length - 1; i >= 0; i--) {
+        sel.remove(i);
+    }
+}
+
+function setTexturePanel(furniture) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() {
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+
+            document.getElementById("textures").style.setProperty("visibility", "visible");
+            dropDown = document.getElementById("texture-drop-down");
+            textures = JSON.parse(xmlHttp.response);
+            htmlText = "";
+            textures.forEach(texture => {
+                htmlText += `<option value="${texture}">${texture}</option>`
+            });
+
+            dropDown.innerHTML = htmlText;
+        }
+    };
+    xmlHttp.open("GET", "/textures/" + furniture);
+    xmlHttp.send();
+
+
 }
