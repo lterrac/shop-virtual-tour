@@ -652,9 +652,24 @@ function dynamicCamera() {
     }
 
     delta = utils.multiplyMatrixVector(dvecmat, [vx, vy, vz, 0.0]);
-    cx += delta[0];
-    cy += delta[1];
-    cz += delta[2];
+    if (cx + delta[0] > 9.9)
+        cx = 9.9
+    else if (cx + delta[0] < -9.9)
+        cx = -9.9
+    else
+        cx += delta[0];
+    if (cy + delta[1] > 4.9)
+        cy = 4.9
+    else if (cy + delta[1] < 0.1)
+        cy = 0.1
+    else
+        cy += delta[1];
+    if (cz + delta[2] > 9.9)
+        cz = 9.9
+    else if (cz + delta[2] < -9.9)
+        cz = -9.9
+    else
+        cz += delta[2];
 }
 
 function drawElement(furniture) {
@@ -897,6 +912,4 @@ function setTexturePanel(furniture) {
     };
     xmlHttp.open("GET", "/textures/" + furniture);
     xmlHttp.send();
-
-
 }
