@@ -3,10 +3,10 @@
  */
 var program;
 var gl;
-var rotation = (Quaternion.ONE); 
+var rotation = (Quaternion.ONE);
 
 // control vars camera movement
-var initCameraPosition = [0.5,2.0,1.0];
+var initCameraPosition = [0.5, 2.0, 1.0];
 var cx = initCameraPosition[0];
 var cy = initCameraPosition[1];
 var cz = initCameraPosition[2];
@@ -35,7 +35,8 @@ var roll = 0.01;
  */
 var delta = 0.3;
 var mouseState = false;
-var lastMouseX = -100, lastMouseY = -100;
+var lastMouseX = -100,
+    lastMouseY = -100;
 
 /**
  * Texture map
@@ -114,67 +115,61 @@ var pointLightTargetHandle;
 /**
  * Furnitures initial configuration
  */
-var furnituresConfig = [
-    {
-        name: 'bed',
-        type: 'JSON',
-        imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix(- 2.0, 0.0, - 4.5),
+var furnituresConfig = [{
+        name: 'Bed',
+        initCoords: utils.MakeTranslateMatrix(-1.0, 0.0, -0.5),
         initScale: utils.MakeScaleMatrix(0.8),
-        initRotation: utils.MakeRotateYMatrix(0),
+        initRotation: utils.MakeRotateYMatrix(30),
+        initOrbitAngle: 90
     },
     {
-        name: 'bed_2',
-        type: 'JSON',
-        imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix( 2.0, 0.0, - 4.5),
+        name: 'Bed_2',
+        initCoords: utils.MakeTranslateMatrix(-3.0, 0.0, -2.5),
         initScale: utils.MakeScaleMatrix(0.9),
-        initRotation: utils.MakeRotateYMatrix(0),
+        initRotation: utils.MakeRotateYMatrix(30),
+        initOrbitAngle: 0
     },
     {
-        name: 'closet',
-        type: 'JSON',
-        imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix(5.0, 0.6, 7),
-        initScale: utils.MakeScaleMatrix(2),
-        initRotation: utils.MakeRotateYMatrix(-90),
+        name: 'Closet',
+        initCoords: utils.MakeTranslateMatrix(3.0, 0.6, -2.5),
+        initScale: utils.MakeScaleMatrix(1),
+        initRotation: utils.MakeRotateYMatrix(180),
+        initOrbitAngle: 0
     },
     {
-        name: 'book-shelf',
-        type: 'JSON',
-        imageType: '.jpg',
-        initCoords: utils.MakeTranslateMatrix(9.0, 0.0, - 2.5),
+        name: 'Book Shelf',
+        initCoords: utils.MakeTranslateMatrix(-6.8, 0.0, -2.5),
         initScale: utils.MakeScaleMatrix(0.8),
         initRotation: utils.MakeRotateYMatrix(0),
+        initOrbitAngle: 90
     },
     {
-        name: 'chair',
-        type: 'JSON',
-        imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix(-4.0, 0.0,  2.5),
-        initScale: utils.MakeScaleMatrix(0.01),
-        initRotation: utils.MakeRotateXMatrix(-90),
+        name: 'Chair',
+        initCoords: utils.MakeTranslateMatrix(0.0, 0.0, 0.0),
+        initScale: utils.MakeScaleMatrix(0.3),
+        initRotation: utils.MakeRotateXMatrix(0),
+        initOrbitAngle: 0
     },
     {
         name: 'Sofa',
-        type: 'JSON',
         initCoords: utils.MakeTranslateMatrix(-6.0, -0.4, -6.0),
         initScale: utils.MakeScaleMatrix(0.1),
         initRotation: utils.MakeRotateYMatrix(0),
     },
     {
         name: 'Room',
-        type: 'JSON',
         initCoords: utils.MakeTranslateMatrix(0.0, 0.0, 0.0),
         initScale: utils.MakeScaleMatrix(1),
         initRotation: utils.MakeRotateYMatrix(0),
-    },
-    // ['Desk', {
-    //     type: 'JSON',
-    //     initCoords: utils.MakeTranslateMatrix(0.0, 0.0, 0.0),
-    //     initScale: utils.MakeScaleMatrix(1),
-    //     initRotation: utils.MakeRotateYMatrix(0),
-    // }],
+        initOrbitAngle: 0
+    }, ,
+    {
+        name: 'Lamp',
+        initCoords: utils.MakeTranslateMatrix(3.0, 0.0, 0.0),
+        initScale: utils.MakeScaleMatrix(1),
+        initRotation: utils.MakeRotateYMatrix(0),
+        initOrbitAngle: 0
+    }
 ];
 
 /**
@@ -216,7 +211,6 @@ class Furniture {
             // a matrix was passed in so do the math
             this.worldMatrix = utils.multiplyMatrices(matrix, this.localMatrix);
         } else {
-
             // no matrix was passed in so just copy.
             utils.copy(this.localMatrix, this.worldMatrix);
         };
@@ -229,7 +223,7 @@ class Furniture {
         }
 
         // now process all the children
-        this.children.forEach(function (child) {
+        this.children.forEach(function(child) {
             child.updateWorldMatrix(worldMatrix);
         });
     }
@@ -237,12 +231,12 @@ class Furniture {
 
 
 /**
- * Map containing all the scene furnitures
+ * Map containing all the scene furnitures 
  */
 var furnitures = new Map();
 
 /**
- * Root of scene graph
+ * Root of scene graph (the room)
  */
 var root;
 
@@ -250,7 +244,7 @@ var root;
  * Initialize the program and start drawing the scene
  */
 async function main() {
-    console.log("start program");
+    setGUI();
 
     getCanvas();
 
@@ -260,10 +254,25 @@ async function main() {
 
     setGraphRoot();
 
+    perspectiveMatrix = utils.MakePerspective(60, gl.canvas.width / gl.canvas.height, 0.01, 2000.0);
 
     drawScene();
 
 }
+
+/**
+ * Set the camera selection in the GUI
+ */
+function setGUI() {
+    furnituresConfig.forEach(furniture => {
+        if (furniture.name != 'Room') {
+            let cameras = document.getElementById("cameras").innerHTML
+            cameras += `<input type="radio" name="cameras" onchange='setCamera("${furniture.name}")';"> ${furniture.name} camera <br />`
+            document.getElementById("cameras").innerHTML = cameras
+        }
+    });
+}
+
 
 function getCanvas() {
     canvas = document.getElementById("main_canvas");
@@ -284,13 +293,9 @@ function getCanvas() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);
 
-    console.log("canvas configured");
-
 }
 
 async function initializeProgram() {
-    console.log("init webgl program");
-
     initParams();
 
     await compileAndLinkShaders();
@@ -310,7 +315,7 @@ function initParams() {
     dirLightBeta = -utils.degToRad(270);
 
     currCamera = 0;
-    cameraTour = ['FreeCamera'];
+    cameraTour = ['Free camera'];
 
 
     //lights
@@ -328,8 +333,8 @@ function initParams() {
     spotlight = {};
     spotlight.name = 'spotLight';
     spotlight.color = warmLight;
-    spotlight.position = [0.0,4.5,0.0];
-    spotlight.targetPosition = [0,0,0];
+    spotlight.position = [0.0, 4.5, 0.0];
+    spotlight.targetPosition = [0, 0, 0];
     spotlight.decay = 0;
     spotlight.target = 2.5;
     spotlight.coneIn = 30.0;
@@ -338,8 +343,8 @@ function initParams() {
     //direct light
     dirLightColor = coldLight;
     dirLightDirection = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
-    Math.sin(dirLightAlpha),
-    Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
+        Math.sin(dirLightAlpha),
+        Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
     ];
 
 
@@ -360,12 +365,12 @@ async function compileAndLinkShaders() {
     shaders.set('basic', {});
     shaders.get('basic').vs = shaderDir + 'vs.glsl';
     shaders.get('basic').fs = shaderDir + 'fs.glsl';
-   
+
 
 
     currentShader = 'basic';
 
-    await utils.loadFiles([shaders.get(currentShader).vs, shaders.get(currentShader).fs], function (shaderText) {
+    await utils.loadFiles([shaders.get(currentShader).vs, shaders.get(currentShader).fs], function(shaderText) {
         program = utils.createAndCompileShaders(gl, shaderText);
     });
     gl.useProgram(program);
@@ -397,7 +402,7 @@ function getUniformLocations() {
     pointLightPositionHandle = gl.getUniformLocation(program, 'pointLightPos');
     pointLightTargetHandle = gl.getUniformLocation(program, 'pointLightTarget');
     pointLightDecayHandle = gl.getUniformLocation(program, 'pointLightDecay');
-    
+
     var name = spotlight.name;
     spotlight.colorHandle = gl.getUniformLocation(program, name + 'Color');
     spotlight.positionHandle = gl.getUniformLocation(program, name + 'Pos');
@@ -414,11 +419,9 @@ async function loadModels() {
     for (const furnitureConfig in furnituresConfig) {
         await loadModel(furnituresConfig[furnitureConfig]);
     }
-
 }
 
 async function loadModel(furnitureConfig) {
-    console.log("load " + furnitureConfig.name);
 
     var path = window.location.pathname;
     var page = path.split("/").pop();
@@ -428,40 +431,40 @@ async function loadModel(furnitureConfig) {
     var model;
 
     await utils.get_json("models/" + furnitureConfig.name + "/" + furnitureConfig.name + ".json",
-        function (parsedModel) {
+        function(parsedModel) {
             model = parsedModel;
         });
 
+    //Create a new furniture
     let furniture = new Furniture();
     furnitures.set(furnitureConfig.name, furniture);
     furniture.name = furnitureConfig.name;
     cameraTour.push(furnitureConfig.name);
-    //local matrix of root object node
+    //local matrix of furniture
     furniture.localMatrix = utils.multiplyMatrices(
         utils.multiplyMatrices(
             utils.multiplyMatrices(
-                furnitureConfig.initCoords
-                , furnitureConfig.initRotation
-            )
-            , furnitureConfig.initScale
-        )
-        , model.rootnode.transformation
+                furnitureConfig.initCoords, furnitureConfig.initRotation
+            ), furnitureConfig.initScale
+        ), model.rootnode.transformation
     );
 
     //Create orbit
     let orbit = new Furniture();
     orbit.name = furnitureConfig.name + " orbit";
-    orbit.angle = 0;
+    orbit.angle = furnitureConfig.initOrbitAngle;
     orbit.localMatrix = utils.multiplyMatrices(
         utils.multiplyMatrices(
-            utils.MakeTranslateMatrix(0.0, 2.0, 3.0),
-            utils.MakeRotateYMatrix(0)
+            utils.MakeRotateYMatrix(orbit.angle),
+            utils.MakeTranslateMatrix(0.0, 2.0, 3.0)
         ),
         utils.identityMatrix()
     );
     furniture.orbit = orbit;
-    
+
+    //Create furniture components
     model.rootnode.children.forEach(parsedChildren => {
+        //FIX: some components does not have meshes, do not parse them
         if (parsedChildren.meshes != undefined) {
             let component = new Furniture();
             furniture.children.push(component);
@@ -512,17 +515,12 @@ async function loadModel(furnitureConfig) {
 
 
             let texture = gl.createTexture();
-            // gl.activeTexture(gl.TEXTURE0);
-            // gl.bindTexture(gl.TEXTURE_2D, texture);
-            // gl.texImage2D(gl.TEXTURE_2D, 1, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-            //     new Uint8Array([0, 0, 255, 255]));
 
-            
-            if (textures.has(component.textureImageName)){
-                
-                setTexture(textures.get(component.textureImageName),texture);
+            //Caching mechanism
+            //Useful only for the room loading
+            if (textures.has(component.textureImageName)) {
+                setTexture(textures.get(component.textureImageName), texture);
             } else {
-                
                 let image = new Image();
                 var path = window.location.pathname;
                 var page = path.split("/").pop();
@@ -530,15 +528,11 @@ async function loadModel(furnitureConfig) {
                 modelsDir = baseDir + "models/";
 
                 image.onload = function() {
-                    
                     setTexture(image, texture);
                     textures.set(component.textureImageName, image);
                 };
-    
-                image.src = modelsDir + furniture.name + "/" + component.textureImageName; 
-    
-                
-    
+                console.log(parsedChildren.name);
+                image.src = modelsDir + furniture.name + "/" + component.textureImageName;
             }
             component.texture = texture;
         }
@@ -546,6 +540,11 @@ async function loadModel(furnitureConfig) {
 
 }
 
+/**
+ * Bind the texture and put the image inside of it
+ * @param {Image} image 
+ * @param {Texture} texture 
+ */
 function setTexture(image, texture) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -555,9 +554,11 @@ function setTexture(image, texture) {
     gl.generateMipmap(gl.TEXTURE_2D);
 }
 
+/**
+ * Delete Room from furnitures after the object loading and update worldMatrix()
+ */
 function setGraphRoot() {
     root = furnitures.get('Room');
-
 
     furnitures.delete('Room');
     furnitures.forEach(furniture => {
@@ -566,9 +567,8 @@ function setGraphRoot() {
     //Init world matrix
     root.updateWorldMatrix();
     worldMatrix = root.worldMatrix;
-
-    perspectiveMatrix = utils.MakePerspective(60, gl.canvas.width / gl.canvas.height, 0.01, 2000.0);
 }
+
 
 function drawScene() {
 
@@ -576,14 +576,14 @@ function drawScene() {
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-   
+
 
     dynamicCamera();
     //Draw the room
     root.updateWorldMatrix(worldMatrix);
 
     updateTransformationMatrices(root);
-    
+
     sendUniformsToGPU();
 
     root.children.filter(children => children.indices)
@@ -594,7 +594,7 @@ function drawScene() {
     furnitures.forEach(furniture => {
         updateTransformationMatrices(furniture);
         furniture.children.forEach(component => {
-        
+
             sendUniformsToGPU();
             drawElement(component);
 
@@ -604,16 +604,17 @@ function drawScene() {
 
     window.requestAnimationFrame(drawScene);
 }
+
 function dynamicCamera() {
 
-    delta = Quaternion.fromEuler(utils.degToRad(rvz), 
-    utils.degToRad(-rvx), 
-    utils.degToRad(rvy));
+    delta = Quaternion.fromEuler(utils.degToRad(rvz),
+        utils.degToRad(-rvx),
+        utils.degToRad(rvy));
 
     rotation = rotation.mul(delta);
 
 
-    
+
     dvecmat = utils.transposeMatrix(viewMatrix);
     dvecmat[12] = dvecmat[13] = dvecmat[14] = 0.0;
     xaxis = [dvecmat[0], dvecmat[4], dvecmat[8]];
@@ -661,9 +662,24 @@ function dynamicCamera() {
     }
 
     delta = utils.multiplyMatrixVector(dvecmat, [vx, vy, vz, 0.0]);
-    cx += delta[0];
-    cy += delta[1];
-    cz += delta[2];    
+    if (cx + delta[0] > 9.9)
+        cx = 9.9
+    else if (cx + delta[0] < -9.9)
+        cx = -9.9
+    else
+        cx += delta[0];
+    if (cy + delta[1] > 4.9)
+        cy = 4.9
+    else if (cy + delta[1] < 0.1)
+        cy = 0.1
+    else
+        cy += delta[1];
+    if (cz + delta[2] > 9.9)
+        cz = 9.9
+    else if (cz + delta[2] < -9.9)
+        cz = -9.9
+    else
+        cz += delta[2];
 }
 
 function drawElement(furniture) {
@@ -692,9 +708,9 @@ function updateTransformationMatrices(furniture) {
 
 function updateView(furniture) {
     if (currCamera == 0) {
-        viewMatrix =  utils.MakeView(cx, cy, cz, elevation, angle);
+        viewMatrix = utils.MakeView(cx, cy, cz, elevation, angle);
     } else {
-        viewMatrix = utils.invertMatrix(utils.LookAt([cx,cy,cz], furnitures.get(cameraTour[currCamera]).getWorldCoordinates(), [0, 1, 0]));
+        viewMatrix = utils.invertMatrix(utils.LookAt([cx, cy, cz], furnitures.get(cameraTour[currCamera]).getWorldCoordinates(), [0, 1, 0]));
     }
 
     viewWorldMatrix = utils.multiplyMatrices(viewMatrix, furniture.worldMatrix);
@@ -706,8 +722,7 @@ function updatePerspective() {
     normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldMatrix));
 }
 
-function switchCamera() {
-    currCamera = (currCamera + 1) % (furnitures.size + 1);
+function switchCamera(currCamera) {
     if (currCamera != 0) {
         //Invert to pass from camera matrix to view matrix
         let posInOrbit = furnitures.get(cameraTour[currCamera]).getOrbitCoordinates();
@@ -718,6 +733,7 @@ function switchCamera() {
         updateSpotlightPosition();
         //turn on the spotlight
         spotlight.color = warmLight;
+        setTexturePanel(furnitures.get(cameraTour[currCamera]).name);
     } else {
         //set the camera position to the initial point
         cx = initCameraPosition[0];
@@ -725,6 +741,7 @@ function switchCamera() {
         cz = initCameraPosition[2];
         //turn off the spotlight
         spotlight.color = [0, 0, 0, 0];
+        hideTexturePanel();
     }
 }
 
@@ -741,9 +758,9 @@ function rotateCameraOnFurniture(dx) {
     cy = posInOrbit[1];
     cz = posInOrbit[2];
     updateSpotlightPosition();
-    console.log('spotlight pos: '+ spotlight.position);
+    console.log('spotlight pos: ' + spotlight.position);
     console.log('camPosition: ' + furniture.getOrbitCoordinates());
-    console.log('spotlight target pos: '+ spotlight.targetPosition);
+    console.log('spotlight target pos: ' + spotlight.targetPosition);
     console.log('furn Position: ' + furniture.getWorldCoordinates());
 
 }
@@ -752,9 +769,9 @@ function updateSpotlightPosition() {
     if (currCamera != 0) {
         furniture = furnitures.get(cameraTour[currCamera]);
         camPosition = furniture.getOrbitCoordinates();
-        spotlight.position[0] =  camPosition[0];
+        spotlight.position[0] = camPosition[0];
         spotlight.position[1] = camPosition[1];
-        spotlight.position[2] =  camPosition[2];
+        spotlight.position[2] = camPosition[2];
         spotlight.targetPosition = furniture.getWorldCoordinates();
     }
 }
@@ -791,3 +808,122 @@ function sendUniformsToGPU() {
 }
 utils.initInteraction();
 window.onload = main;
+
+// Lights function
+
+function toggleAmbient() {
+    if (ambientON == false) {
+        ambientLightColor = lowLight;
+        ambientON = true;
+    } else {
+        ambientLightColor = [0.0, 0.0, 0.0, 1.0];
+        ambientON = false;
+    }
+}
+
+
+function toggleDirect() {
+    if (directON == false) {
+        dirLightColor = coldLight;
+        directON = true;
+        //console.log('direct on');
+    } else {
+        dirLightColor = [0.0, 0.0, 0.0, 1.0];
+        directON = false;
+        //console.log('direct off');
+    }
+}
+
+function togglePointLight() {
+    if (pointLightON == false) {
+        pointLightColor = warmLight;
+        pointLightON = true;
+        //console.log('point on');
+    } else {
+        pointLightColor = [0.0, 0.0, 0.0, 1.0];
+        pointLightON = false;
+        //console.log('point off');
+    }
+}
+
+function toggleSpotLight() {
+    if (spotlight.On == false) {
+        spotlight.color = warmLight;
+        spotlight.On = true;
+        //console.log('spotlight on');
+    } else {
+        spotlight.color = [0.0, 0.0, 0.0, 1.0];
+        spotlight.On = false;
+        //console.log('spotlight off');
+    }
+}
+
+//Camera GUI function
+
+function setCamera(camera) {
+    console.log(camera);
+
+    currCamera = cameraTour.indexOf(camera);
+    switchCamera(currCamera);
+}
+
+function nextCamera() {
+    currCamera = (currCamera + 1) % (furnitures.size + 1);
+    switchCamera(currCamera);
+}
+
+// Texture GUI function
+
+function changeTexture(imageName) {
+    let furniture = furnitures.get(cameraTour[currCamera]);
+    let image = new Image();
+    var path = window.location.pathname;
+    var page = path.split("/").pop();
+    baseDir = window.location.href.replace(page, '');
+    modelsDir = baseDir + "models/";
+
+    console.log(modelsDir + furniture.name + "/" + imageName + ".webp");
+
+    image.onload = function() {
+        furniture.children.forEach(component => {
+            if (component.texture) {
+                console.log("image");
+                console.log(image.src);
+
+                setTexture(image, component.texture)
+            }
+        });
+    };
+
+    image.src = modelsDir + furniture.name + "/" + imageName + ".webp";
+}
+
+function hideTexturePanel() {
+    document.getElementById("textures").style.setProperty("visibility", "hidden");
+
+    //Remove all elements from select
+    let sel = document.getElementById('texture-drop-down');
+    for (i = sel.length - 1; i >= 0; i--) {
+        sel.remove(i);
+    }
+}
+
+function setTexturePanel(furniture) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() {
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+
+            document.getElementById("textures").style.setProperty("visibility", "visible");
+            dropDown = document.getElementById("texture-drop-down");
+            textures = JSON.parse(xmlHttp.response);
+            htmlText = "";
+            textures.forEach(texture => {
+                htmlText += `<option value="${texture}">${texture}</option>`
+            });
+
+            dropDown.innerHTML = htmlText;
+        }
+    };
+    xmlHttp.open("GET", "/textures/" + furniture);
+    xmlHttp.send();
+}

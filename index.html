@@ -2,36 +2,50 @@
 <html>
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Virtual Tour</title>
-  <style type="text/css">
-    body {
-      margin: 0;
-      background-color: gray;
-    }
-
-    canvas {
-      display: block;
-      background-color: white;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Virtual Tour</title>
+    <link rel="stylesheet" type="text/css" href="./css/style.css">
+    <!--Script imports-->
+    <script type="text/javascript" src="js/quaternion.min.js"></script>
+    <script type="text/javascript" src="js/webgl-obj-loader.min.js"></script>
+    <script type="text/javascript" src="js/utils.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
 </head>
 
 <body>
-  <div id="title">
-    <center>Virtual Tour</center>
-  </div>
-
-  <div id="canvas_id">
-    <canvas id="main_canvas"></canvas>
-  </div>
-
-  <!--Script imports-->
-  <script type="text/javascript" src="js/quaternion.min.js"></script>
-  <script type="text/javascript" src="js/webgl-obj-loader.min.js"></script>
-  <script type="text/javascript" src="js/utils.js"></script>
-  <script type="text/javascript" src="js/main.js"></script>
+    <table>
+        <tr>
+            <td>
+                <div id="canvas_id">
+                    <canvas id="main_canvas"></canvas>
+                </div>
+            </td>
+            <td style="background-color: white; font-family: courier; padding: 5px;">
+                <p>
+                    <h2> Shop Virtual Tour </h2>
+                </p>
+                <p><b> Cameras </b></p>
+                <form>
+                    <div id="cameras">
+                        <input type="radio" name="cameras" onchange='setCamera("Free camera");' checked> Free camera <br />
+                    </div>
+                </form>
+                <p><b> Ligths </b></p>
+                <div id="lights">
+                    <input type="checkbox" id="chbx" onclick="toggleAmbient();" checked />Ambient<br />
+                    <input type="checkbox" id="chbx" onclick="toggleDirect();" checked />Direct<br />
+                    <input type="checkbox" id="chbx" onclick="togglePointLight();" checked />Point Light<br />
+                    <input type="checkbox" id="chbx" onclick="toggleSpotLight();" checked />Spot Light<br />
+                </div>
+                <p id="textures" style="visibility: hidden;">
+                    <b> Textures</b> <br>
+                    <select id="texture-drop-down" onclick='changeTexture(this.value);'>
+                    </select>
+                </p>
+            </td>
+        </tr>
+    </table>
 </body>
 
 </html>
