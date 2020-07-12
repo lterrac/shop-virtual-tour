@@ -117,57 +117,53 @@ var pointLightTargetHandle;
  */
 var furnituresConfig = [{
         name: 'Bed',
-        type: 'JSON',
-        imageType: '.png',
         initCoords: utils.MakeTranslateMatrix(-1.0, 0.0, -0.5),
         initScale: utils.MakeScaleMatrix(0.8),
         initRotation: utils.MakeRotateYMatrix(30),
+        initOrbitAngle: 90
     },
     {
         name: 'Bed_2',
-        type: 'JSON',
-        imageType: '.png',
         initCoords: utils.MakeTranslateMatrix(-3.0, 0.0, -2.5),
         initScale: utils.MakeScaleMatrix(0.9),
         initRotation: utils.MakeRotateYMatrix(30),
+        initOrbitAngle: 0
     },
     {
         name: 'Closet',
-        type: 'JSON',
-        imageType: '.png',
         initCoords: utils.MakeTranslateMatrix(3.0, 0.6, -2.5),
         initScale: utils.MakeScaleMatrix(1),
         initRotation: utils.MakeRotateYMatrix(0),
+        initOrbitAngle: 0
     },
     {
         name: 'Book Shelf',
-        type: 'JSON',
-        imageType: '.jpg',
-        initCoords: utils.MakeTranslateMatrix(-9.8, 0.0, -2.5),
+        initCoords: utils.MakeTranslateMatrix(+9.8, 0.0, -2.5),
         initScale: utils.MakeScaleMatrix(0.8),
         initRotation: utils.MakeRotateYMatrix(0),
+        initOrbitAngle: 90
     },
     {
         name: 'Chair',
-        type: 'JSON',
-        imageType: '.png',
-        initCoords: utils.MakeTranslateMatrix(3.0, 0.0, -5.5),
-        initScale: utils.MakeScaleMatrix(0.01),
-        initRotation: utils.MakeRotateXMatrix(-90),
+        initCoords: utils.MakeTranslateMatrix(0.0, 0.0, 0.0),
+        initScale: utils.MakeScaleMatrix(0.3),
+        initRotation: utils.MakeRotateXMatrix(0),
+        initOrbitAngle: 0
     },
     {
         name: 'Room',
-        type: 'JSON',
         initCoords: utils.MakeTranslateMatrix(0.0, 0.0, 0.0),
         initScale: utils.MakeScaleMatrix(1),
         initRotation: utils.MakeRotateYMatrix(0),
+        initOrbitAngle: 0
     },
-    // ['Desk', {
-    //     type: 'JSON',
-    //     initCoords: utils.MakeTranslateMatrix(0.0, 0.0, 0.0),
-    //     initScale: utils.MakeScaleMatrix(1),
-    //     initRotation: utils.MakeRotateYMatrix(0),
-    // }],
+    {
+        name: 'sofa',
+        initCoords: utils.MakeTranslateMatrix(-6.0, -0.4, -6.0),
+        initScale: utils.MakeScaleMatrix(0.1),
+        initRotation: utils.MakeRotateYMatrix(0),
+        initOrbitAngle: 0
+    },
 ];
 
 /**
@@ -229,12 +225,12 @@ class Furniture {
 
 
 /**
- * Map containing all the scene furnitures
+ * Map containing all the scene furnitures 
  */
 var furnitures = new Map();
 
 /**
- * Root of scene graph
+ * Root of scene graph (the room)
  */
 var root;
 
@@ -252,11 +248,15 @@ async function main() {
 
     setGraphRoot();
 
+    perspectiveMatrix = utils.MakePerspective(60, gl.canvas.width / gl.canvas.height, 0.01, 2000.0);
 
     drawScene();
 
 }
 
+/**
+ * Set the camera selection in the GUI
+ */
 function setGUI() {
     furnituresConfig.forEach(furniture => {
         if (furniture.name != 'Room') {
@@ -266,6 +266,7 @@ function setGUI() {
         }
     });
 }
+
 
 function getCanvas() {
     canvas = document.getElementById("main_canvas");
@@ -428,11 +429,12 @@ async function loadModel(furnitureConfig) {
             model = parsedModel;
         });
 
+    //Create a new furniture
     let furniture = new Furniture();
     furnitures.set(furnitureConfig.name, furniture);
     furniture.name = furnitureConfig.name;
     cameraTour.push(furnitureConfig.name);
-    //local matrix of root object node
+    //local matrix of furniture
     furniture.localMatrix = utils.multiplyMatrices(
         utils.multiplyMatrices(
             utils.multiplyMatrices(
@@ -444,17 +446,19 @@ async function loadModel(furnitureConfig) {
     //Create orbit
     let orbit = new Furniture();
     orbit.name = furnitureConfig.name + " orbit";
-    orbit.angle = 0;
+    orbit.angle = furnitureConfig.initOrbitAngle;
     orbit.localMatrix = utils.multiplyMatrices(
         utils.multiplyMatrices(
-            utils.MakeTranslateMatrix(0.0, 2.0, 3.0),
-            utils.MakeRotateYMatrix(0)
+            utils.MakeRotateYMatrix(orbit.angle),
+            utils.MakeTranslateMatrix(0.0, 2.0, 3.0)
         ),
         utils.identityMatrix()
     );
     furniture.orbit = orbit;
 
+    //Create furniture components
     model.rootnode.children.forEach(parsedChildren => {
+        //FIX: some components does not have meshes, do not parse them
         if (parsedChildren.meshes != undefined) {
             let component = new Furniture();
             furniture.children.push(component);
@@ -506,7 +510,8 @@ async function loadModel(furnitureConfig) {
 
             let texture = gl.createTexture();
 
-
+            //Caching mechanism
+            //Useful only for the room loading
             if (textures.has(component.textureImageName)) {
                 setTexture(textures.get(component.textureImageName), texture);
             } else {
@@ -520,11 +525,7 @@ async function loadModel(furnitureConfig) {
                     setTexture(image, texture);
                     textures.set(component.textureImageName, image);
                 };
-
                 image.src = modelsDir + furniture.name + "/" + component.textureImageName;
-
-
-
             }
             component.texture = texture;
         }
@@ -532,22 +533,25 @@ async function loadModel(furnitureConfig) {
 
 }
 
+/**
+ * Bind the texture and put the image inside of it
+ * @param {Image} image 
+ * @param {Texture} texture 
+ */
 function setTexture(image, texture) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    console.log("image");
-    console.log(image);
-
-
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.generateMipmap(gl.TEXTURE_2D);
 }
 
+/**
+ * Delete Room from furnitures after the object loading and update worldMatrix()
+ */
 function setGraphRoot() {
     root = furnitures.get('Room');
-
 
     furnitures.delete('Room');
     furnitures.forEach(furniture => {
@@ -556,9 +560,8 @@ function setGraphRoot() {
     //Init world matrix
     root.updateWorldMatrix();
     worldMatrix = root.worldMatrix;
-
-    perspectiveMatrix = utils.MakePerspective(60, gl.canvas.width / gl.canvas.height, 0.01, 2000.0);
 }
+
 
 function drawScene() {
 
