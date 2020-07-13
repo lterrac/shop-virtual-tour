@@ -68,7 +68,7 @@ void main() {
   vec4 texture_col = texture(u_texture, fs_uv);
   vec3 normalVec = normalize(fs_normal);
   vec3 eyedirVec = normalize(eyePos - fs_pos);
-  vec3 spotLightDir = normalize(spotLightTargetPos - spotLightPos);
+  vec3 spotLightDir = normalize(spotLightPos - spotLightTargetPos);
 
   //direct
   vec3 dirLightRelDir = dirLightDirection;

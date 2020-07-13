@@ -6,12 +6,14 @@ var gl;
 var rotation = (Quaternion.ONE);
 
 // control vars camera movement
-var initCameraPosition = [0.5, 2.0, 1.0];
+var initCameraPosition = [0.0, 2.0, 4.0];
 var cx = initCameraPosition[0];
 var cy = initCameraPosition[1];
 var cz = initCameraPosition[2];
 var currCamera;
 var cameraTour;
+
+var lastUpdateTime;
 
 const MAX_ELEVATION_ANGLE = 0.5;
 const MIN_ELEVATION_ANGLE = MAX_ELEVATION_ANGLE * -1;
@@ -117,58 +119,93 @@ var pointLightTargetHandle;
  */
 var furnituresConfig = [{
         name: 'Bed',
-        initCoords: utils.MakeTranslateMatrix(-1.0, 0.0, -0.5),
+        initCoords: utils.MakeTranslateMatrix(1.0, 0.0, -5.0),
         initScale: utils.MakeScaleMatrix(0.8),
-        initRotation: utils.MakeRotateYMatrix(30),
-        initOrbitAngle: 90
+        initRotation: utils.MakeRotateYMatrix(0),
+        initOrbitAngle: 90,
+        spotlightPos: [7.5, 0.0, -2.5],
+        pivot: [1.0,0.5,-5.0]
     },
     {
         name: 'Bed_2',
-        initCoords: utils.MakeTranslateMatrix(-3.0, 0.0, -2.5),
+        initCoords: utils.MakeTranslateMatrix(5.0, 0.0, -5.0),
         initScale: utils.MakeScaleMatrix(0.9),
-        initRotation: utils.MakeRotateYMatrix(30),
-        initOrbitAngle: 0
+        initRotation: utils.MakeRotateYMatrix(0),
+        initOrbitAngle: 0,
+        spotlightPos: [7.5, 0.0, -2.5],
+        pivot: [9.5, 1.6, -2.5]
     },
     {
         name: 'Closet',
-        initCoords: utils.MakeTranslateMatrix(3.0, 0.6, -2.5),
-        initScale: utils.MakeScaleMatrix(1),
-        initRotation: utils.MakeRotateYMatrix(180),
-        initOrbitAngle: 0
+        initCoords: utils.MakeTranslateMatrix(9.5, 1.6, -2.5),
+        initScale: utils.MakeScaleMatrix(3),
+        initRotation: utils.MakeRotateYMatrix(-90),
+        initOrbitAngle: 0,
+        spotlightPos: [7.5, 0.0, -2.5],
+        pivot: [9.5, 1.6, -2.5]
     },
     {
         name: 'Book Shelf',
-        initCoords: utils.MakeTranslateMatrix(-6.8, 0.0, -2.5),
+        initCoords: utils.MakeTranslateMatrix(-8.8, 0.0, 0.0),
         initScale: utils.MakeScaleMatrix(0.8),
-        initRotation: utils.MakeRotateYMatrix(0),
-        initOrbitAngle: 90
+        initRotation: utils.MakeRotateYMatrix(180),
+        initOrbitAngle: 90,
+        spotlightPos: [7.5, 0.0, -2.5],
+        pivot: [9.5, 1.6, -2.5]
     },
     {
         name: 'Chair',
         initCoords: utils.MakeTranslateMatrix(0.0, 0.0, 0.0),
         initScale: utils.MakeScaleMatrix(0.3),
         initRotation: utils.MakeRotateXMatrix(0),
-        initOrbitAngle: 0
+        initOrbitAngle: 0,
+        spotlightPos: [7.5, 0.0, -2.5],
+        pivot: [9.5, 1.6, -2.5]
     },
     {
         name: 'Sofa',
-        initCoords: utils.MakeTranslateMatrix(-6.0, -0.4, -6.0),
+        initCoords: utils.MakeTranslateMatrix(-4.0, -0.4, -2.0),
         initScale: utils.MakeScaleMatrix(0.1),
         initRotation: utils.MakeRotateYMatrix(0),
+        initOrbitAngle: 0,
+        spotlightPos: [7.5, 0.0, -2.5],
+        pivot: [9.5, 1.6, -2.5]
     },
     {
         name: 'Room',
         initCoords: utils.MakeTranslateMatrix(0.0, 0.0, 0.0),
         initScale: utils.MakeScaleMatrix(1),
         initRotation: utils.MakeRotateYMatrix(0),
-        initOrbitAngle: 0
+        initOrbitAngle: 0,
+        spotlightPos: [7.5, 0.0, -2.5],
+        pivot: [9.5, 1.6, -2.5]
     }, ,
     {
-        name: 'Lamp',
-        initCoords: utils.MakeTranslateMatrix(3.0, 0.0, 0.0),
-        initScale: utils.MakeScaleMatrix(1),
+        name: 'LampCloset',
+        initCoords: utils.MakeTranslateMatrix(7.5, 0.0, -2.5),
+        initScale: utils.MakeScaleMatrix(0.5),
+        initRotation: utils.MakeRotateYMatrix(90),
+        initOrbitAngle: 0,
+        spotlightPos: [7.5, 0.0, -2.5],
+        pivot: [9.5, 1.6, -2.5]
+    },
+    {
+        name: 'LampShelf',
+        initCoords: utils.MakeTranslateMatrix(-7.0, 0.0, 0.0),
+        initScale: utils.MakeScaleMatrix(0.5),
+        initRotation: utils.MakeRotateYMatrix(-90),
+        initOrbitAngle: 0,
+        spotlightPos: [7.5, 0.0, -2.5],
+        pivot: [9.5, 1.6, -2.5]
+    },
+    {
+        name: 'fan',
+        initCoords: utils.MakeTranslateMatrix(0.0, 5.5, 0.0),
+        initScale: utils.MakeScaleMatrix(0.5),
         initRotation: utils.MakeRotateYMatrix(0),
-        initOrbitAngle: 0
+        initOrbitAngle: 0,
+        spotlightPos: [7.5, 0.0, -2.5],
+        pivot: [9.5, 1.6, -2.5]
     }
 ];
 
@@ -320,25 +357,25 @@ function initParams() {
 
     //lights
     warmLight = [230 / 255, 230 / 255, 230 / 255, 1.0];
-    coldLight = [200 / 255, 220 / 255, 220 / 255, 1.0];
+    coldLight = [120 / 170, 255 / 255, 170 / 255, 1.0];
     lowLight = [30 / 255, 30 / 255, 30 / 255, 1.0];
     //ambient light
     ambientLightColor = lowLight;
     //point light
     pointLightColor = warmLight;
-    pointLightPosition = [0.0, 4., 0.0];
-    pointLightDecay = 1.0;
-    pointLightTarget = 1.0;
+    pointLightPosition = [0.0, 2.0, 0.0];
+    pointLightDecay = 2.0;
+    pointLightTarget = 1.5;
     //spot lights
     spotlight = {};
     spotlight.name = 'spotLight';
     spotlight.color = warmLight;
-    spotlight.position = [0.0, 4.5, 0.0];
+    spotlight.position = [0.0, 3.5, 0.0];
     spotlight.targetPosition = [0, 0, 0];
-    spotlight.decay = 0;
-    spotlight.target = 2.5;
-    spotlight.coneIn = 30.0;
-    spotlight.coneOut = 60.0;
+    spotlight.decay = 1.0;
+    spotlight.target = 1.0;
+    spotlight.coneIn = 0.5;
+    spotlight.coneOut = 30.0;
     spotlight.On = true;
     //direct light
     dirLightColor = coldLight;
@@ -353,6 +390,8 @@ function initParams() {
     specShine = 100.0;
 
     mixTextureColor = 0.9; //percentage of texture color in the final projection
+
+    lastUpdateTime = (new Date).getTime();
 
 }
 
@@ -569,6 +608,16 @@ function setGraphRoot() {
     worldMatrix = root.worldMatrix;
 }
 
+function animate(){
+    var currentTime = (new Date).getTime();
+    if(lastUpdateTime){
+      var deltaC = ((currentTime - lastUpdateTime)) / 10.0;
+      let furniture = furnitures.get('fan');
+      furniture.localMatrix = utils.multiplyMatrices(utils.MakeRotateYMatrix(deltaC),furniture.localMatrix);
+    }
+    lastUpdateTime = currentTime;
+}
+
 
 function drawScene() {
 
@@ -577,10 +626,11 @@ function drawScene() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 
-
     dynamicCamera();
     //Draw the room
     root.updateWorldMatrix(worldMatrix);
+
+    animate();
 
     updateTransformationMatrices(root);
 
@@ -769,10 +819,12 @@ function updateSpotlightPosition() {
     if (currCamera != 0) {
         furniture = furnitures.get(cameraTour[currCamera]);
         camPosition = furniture.getOrbitCoordinates();
-        spotlight.position[0] = camPosition[0];
-        spotlight.position[1] = camPosition[1];
-        spotlight.position[2] = camPosition[2];
+        spotlight.position[0] = 6.5;//7.5
+        spotlight.position[1] =  0.6;//0.5;
+        spotlight.position[2] = -2.5;//-2.5;
+        //furnitures.get('Chair').worldMatrix = utils.MakeTranslateMatrix(-1.0,2.0,2.5);
         spotlight.targetPosition = furniture.getWorldCoordinates();
+        //furnitures.get('Chair').worldMatrix = utils.MakeTranslateMatrix(spotlight.targetPosition[0],spotlight.targetPosition[1],spotlight.targetPosition[2]);
     }
 }
 
