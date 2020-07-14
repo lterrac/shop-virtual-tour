@@ -122,9 +122,9 @@ var furnituresConfig = [{
         initCoords: utils.MakeTranslateMatrix(1.0, 0.0, -5.0),
         initScale: utils.MakeScaleMatrix(0.8),
         initRotation: utils.MakeRotateYMatrix(0),
-        initOrbitAngle: 90,
-        spotlightPos: [7.5, 0.0, -2.5],
-        pivot: [1.0,0.5,-5.0]
+        initOrbitAngle: 0,
+        spotlightPosition: [1.0, 4.0,-6.0],
+        pivot: [1.0,0.0,-6.0]
     },
     {
         name: 'Bed_2',
@@ -132,26 +132,26 @@ var furnituresConfig = [{
         initScale: utils.MakeScaleMatrix(0.9),
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
-        spotlightPos: [7.5, 0.0, -2.5],
-        pivot: [9.5, 1.6, -2.5]
+        spotlightPosition: [5.0, 4.0, -6.0],
+        pivot: [5.0, 0.0, -6.0]
     },
     {
         name: 'Closet',
         initCoords: utils.MakeTranslateMatrix(9.5, 1.6, -2.5),
         initScale: utils.MakeScaleMatrix(3),
-        initRotation: utils.MakeRotateYMatrix(-90),
+        initRotation: utils.MakeRotateYMatrix(+90),
         initOrbitAngle: 0,
-        spotlightPos: [7.5, 0.0, -2.5],
-        pivot: [9.5, 1.6, -2.5]
+        spotlightPosition: [7.5, 0.5, -2.5],
+        pivot: [9.5, 1.0, -2.5]
     },
     {
         name: 'Book Shelf',
-        initCoords: utils.MakeTranslateMatrix(-8.8, 0.0, 0.0),
+        initCoords: utils.MakeTranslateMatrix(-8.8, 0.0, 1.0),
         initScale: utils.MakeScaleMatrix(0.8),
         initRotation: utils.MakeRotateYMatrix(180),
         initOrbitAngle: 90,
-        spotlightPos: [7.5, 0.0, -2.5],
-        pivot: [9.5, 1.6, -2.5]
+        spotlightPosition: [-6.5, 0.5, 1.0],
+        pivot: [-8.8, 1.5, 1.0]
     },
     {
         name: 'Chair',
@@ -159,17 +159,17 @@ var furnituresConfig = [{
         initScale: utils.MakeScaleMatrix(0.3),
         initRotation: utils.MakeRotateXMatrix(0),
         initOrbitAngle: 0,
-        spotlightPos: [7.5, 0.0, -2.5],
-        pivot: [9.5, 1.6, -2.5]
+        spotlightPosition: [0.0, 4.0, 0.0],
+        pivot: [0.0, 0.0, 0.0]
     },
     {
         name: 'Sofa',
-        initCoords: utils.MakeTranslateMatrix(-4.0, -0.4, -2.0),
+        initCoords: utils.MakeTranslateMatrix(-6.0, -0.4, -5.0),
         initScale: utils.MakeScaleMatrix(0.1),
         initRotation: utils.MakeRotateYMatrix(0),
-        initOrbitAngle: 0,
-        spotlightPos: [7.5, 0.0, -2.5],
-        pivot: [9.5, 1.6, -2.5]
+        initOrbitAngle: -70,
+        spotlightPosition: [-6.0, 4.0, -5.0],
+        pivot: [-6.0, 0.0, -5.0]
     },
     {
         name: 'Room',
@@ -177,8 +177,8 @@ var furnituresConfig = [{
         initScale: utils.MakeScaleMatrix(1),
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
-        spotlightPos: [7.5, 0.0, -2.5],
-        pivot: [9.5, 1.6, -2.5]
+        spotlightPosition: [0.0, 1.0, 0.0],
+        pivot: [0.0, 0.0, 0.0]
     }, ,
     {
         name: 'LampCloset',
@@ -186,17 +186,17 @@ var furnituresConfig = [{
         initScale: utils.MakeScaleMatrix(0.5),
         initRotation: utils.MakeRotateYMatrix(90),
         initOrbitAngle: 0,
-        spotlightPos: [7.5, 0.0, -2.5],
-        pivot: [9.5, 1.6, -2.5]
+        spotlightPosition: [0.0, 1.0, 0.0],
+        pivot: [7.5, 0.0, -2.5]
     },
     {
         name: 'LampShelf',
-        initCoords: utils.MakeTranslateMatrix(-7.0, 0.0, 0.0),
+        initCoords: utils.MakeTranslateMatrix(-6.5, 0.0, 1.0),
         initScale: utils.MakeScaleMatrix(0.5),
         initRotation: utils.MakeRotateYMatrix(-90),
         initOrbitAngle: 0,
-        spotlightPos: [7.5, 0.0, -2.5],
-        pivot: [9.5, 1.6, -2.5]
+        spotlightPosition: [0.0, 1.0, 1.0],
+        pivot: [-7.0, 0.0, 1.0]
     },
     {
         name: 'fan',
@@ -204,8 +204,8 @@ var furnituresConfig = [{
         initScale: utils.MakeScaleMatrix(0.5),
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
-        spotlightPos: [7.5, 0.0, -2.5],
-        pivot: [9.5, 1.6, -2.5]
+        spotlightPosition: [0.0, 2.0, 0.0],
+        pivot: [0.0, 5.5, 0.0]
     }
 ];
 
@@ -364,7 +364,7 @@ function initParams() {
     //point light
     pointLightColor = warmLight;
     pointLightPosition = [0.0, 2.0, 0.0];
-    pointLightDecay = 2.0;
+    pointLightDecay = 1.0;
     pointLightTarget = 1.5;
     //spot lights
     spotlight = {};
@@ -374,8 +374,8 @@ function initParams() {
     spotlight.targetPosition = [0, 0, 0];
     spotlight.decay = 1.0;
     spotlight.target = 1.0;
-    spotlight.coneIn = 0.5;
-    spotlight.coneOut = 30.0;
+    spotlight.coneIn = 0.7;
+    spotlight.coneOut = 40.0;
     spotlight.On = true;
     //direct light
     dirLightColor = coldLight;
@@ -387,7 +387,7 @@ function initParams() {
 
     diffuseLightColor = [230 / 255, 230 / 255, 230 / 255, 1.0]; //warm white
     specularLightColor = [250 / 255, 250 / 255, 250 / 255, 1.0]; //white
-    specShine = 100.0;
+    specShine = 90.0;
 
     mixTextureColor = 0.9; //percentage of texture color in the final projection
 
@@ -487,17 +487,20 @@ async function loadModel(furnitureConfig) {
             ), furnitureConfig.initScale
         ), model.rootnode.transformation
     );
+    furniture.pivot = furnitureConfig.pivot;
+    furniture.spotlightPosition = furnitureConfig.spotlightPosition;
 
     //Create orbit
     let orbit = new Furniture();
     orbit.name = furnitureConfig.name + " orbit";
     orbit.angle = furnitureConfig.initOrbitAngle;
+    orbit.scale = furnitureConfig.initScale;
     orbit.localMatrix = utils.multiplyMatrices(
         utils.multiplyMatrices(
             utils.MakeRotateYMatrix(orbit.angle),
-            utils.MakeTranslateMatrix(0.0, 2.0, 3.0)
+            utils.invertMatrix(orbit.scale)
         ),
-        utils.identityMatrix()
+        utils.MakeTranslateMatrix(0.0, 3.0, 3.0)
     );
     furniture.orbit = orbit;
 
@@ -645,7 +648,7 @@ function drawScene() {
         updateTransformationMatrices(furniture);
         furniture.children.forEach(component => {
 
-            sendUniformsToGPU();
+            //sendUniformsToGPU();
             drawElement(component);
 
 
@@ -760,7 +763,7 @@ function updateView(furniture) {
     if (currCamera == 0) {
         viewMatrix = utils.MakeView(cx, cy, cz, elevation, angle);
     } else {
-        viewMatrix = utils.invertMatrix(utils.LookAt([cx, cy, cz], furnitures.get(cameraTour[currCamera]).getWorldCoordinates(), [0, 1, 0]));
+        viewMatrix = utils.invertMatrix(utils.LookAt([cx, cy, cz], furnitures.get(cameraTour[currCamera]).pivot, [0, 1, 0]));
     }
 
     viewWorldMatrix = utils.multiplyMatrices(viewMatrix, furniture.worldMatrix);
@@ -798,32 +801,29 @@ function switchCamera(currCamera) {
 function rotateCameraOnFurniture(dx) {
     furniture = furnitures.get(cameraTour[currCamera]);
     furniture.orbit.angle += (0.3 * dx);
+
     furniture.orbit.localMatrix =
+    utils.multiplyMatrices(
         utils.multiplyMatrices(
             utils.MakeRotateYMatrix(furniture.orbit.angle),
-            utils.MakeTranslateMatrix(0.0, 3.0, 3.5)
-        )
-    let posInOrbit = furnitures.get(cameraTour[currCamera]).getOrbitCoordinates();
+            utils.invertMatrix(furniture.orbit.scale)
+        ),
+        utils.MakeTranslateMatrix(0.0, 3.0, 3.0)
+    );
+    let posInOrbit = furniture.getOrbitCoordinates();
     cx = posInOrbit[0];
     cy = posInOrbit[1];
     cz = posInOrbit[2];
-    updateSpotlightPosition();
-    console.log('spotlight pos: ' + spotlight.position);
-    console.log('camPosition: ' + furniture.getOrbitCoordinates());
-    console.log('spotlight target pos: ' + spotlight.targetPosition);
-    console.log('furn Position: ' + furniture.getWorldCoordinates());
-
 }
 
 function updateSpotlightPosition() {
     if (currCamera != 0) {
         furniture = furnitures.get(cameraTour[currCamera]);
-        camPosition = furniture.getOrbitCoordinates();
-        spotlight.position[0] = 6.5;//7.5
-        spotlight.position[1] =  0.6;//0.5;
-        spotlight.position[2] = -2.5;//-2.5;
+        spotlight.position[0] = furniture.spotlightPosition[0];
+        spotlight.position[1] = furniture.spotlightPosition[1];
+        spotlight.position[2] = furniture.spotlightPosition[2];
         //furnitures.get('Chair').worldMatrix = utils.MakeTranslateMatrix(-1.0,2.0,2.5);
-        spotlight.targetPosition = furniture.getWorldCoordinates();
+        spotlight.targetPosition = furniture.pivot;
         //furnitures.get('Chair').worldMatrix = utils.MakeTranslateMatrix(spotlight.targetPosition[0],spotlight.targetPosition[1],spotlight.targetPosition[2]);
     }
 }
