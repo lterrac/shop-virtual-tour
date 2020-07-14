@@ -155,12 +155,12 @@ var furnituresConfig = [{
     },
     {
         name: 'Chair',
-        initCoords: utils.MakeTranslateMatrix(0.0, 0.0, 0.0),
+        initCoords: utils.MakeTranslateMatrix(1.0, 0.0, 0.0),
         initScale: utils.MakeScaleMatrix(0.3),
         initRotation: utils.MakeRotateXMatrix(0),
         initOrbitAngle: 0,
-        spotlightPosition: [0.0, 4.0, 0.0],
-        pivot: [0.0, 0.0, 0.0]
+        spotlightPosition: [1.0, 4.0, 0.0],
+        pivot: [1.0, 0.0, 0.0]
     },
     {
         name: 'Sofa',
@@ -648,7 +648,7 @@ function drawScene() {
         updateTransformationMatrices(furniture);
         furniture.children.forEach(component => {
 
-            //sendUniformsToGPU();
+            sendUniformsToGPU();
             drawElement(component);
 
 
@@ -741,7 +741,7 @@ function drawElement(furniture) {
     //normal matrix
     gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(normalMatrix));
     //world matrix
-    gl.uniformMatrix4fv(worldMatrixLocation, gl.FALSE, utils.transposeMatrix(worldMatrix));
+    gl.uniformMatrix4fv(worldMatrixLocation, gl.FALSE, utils.transposeMatrix(furniture.worldMatrix));
 
 
     gl.activeTexture(gl.TEXTURE0);
@@ -765,7 +765,6 @@ function updateView(furniture) {
     } else {
         viewMatrix = utils.invertMatrix(utils.LookAt([cx, cy, cz], furnitures.get(cameraTour[currCamera]).pivot, [0, 1, 0]));
     }
-
     viewWorldMatrix = utils.multiplyMatrices(viewMatrix, furniture.worldMatrix);
 }
 
@@ -847,7 +846,6 @@ function sendUniformsToGPU() {
     gl.uniform1f(pointLightDecayHandle, pointLightDecay);
     gl.uniform1f(pointLightTargetHandle, pointLightTarget);
     //spotlights
-
     gl.uniform4fv(spotlight.colorHandle, spotlight.color);
     gl.uniform3fv(spotlight.positionHandle, spotlight.position);
     gl.uniform3fv(spotlight.targetPositionHandle, spotlight.targetPosition);
