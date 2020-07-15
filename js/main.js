@@ -124,7 +124,8 @@ var furnituresConfig = [{
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
         spotlightPosition: [1.0, 4.0, -6.0],
-        pivot: [1.0, 0.0, -6.0]
+        pivot: [1.0, 0.0, -6.0],
+        mainTexture: "Orion"
     },
     {
         name: 'Bed_2',
@@ -133,7 +134,8 @@ var furnituresConfig = [{
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
         spotlightPosition: [5.0, 4.0, -6.0],
-        pivot: [5.0, 0.0, -6.0]
+        pivot: [5.0, 0.0, -6.0],
+        mainTexture: "Flower"
     },
     {
         name: 'Wardrobe',
@@ -142,7 +144,8 @@ var furnituresConfig = [{
         initRotation: utils.MakeRotateYMatrix(+90),
         initOrbitAngle: 0,
         spotlightPosition: [7.5, 0.5, -2.5],
-        pivot: [9.5, 1.0, -2.5]
+        pivot: [9.5, 1.0, -2.5],
+        mainTexture: "White"
     },
     {
         name: 'Book Shelf',
@@ -151,7 +154,8 @@ var furnituresConfig = [{
         initRotation: utils.MakeRotateYMatrix(180),
         initOrbitAngle: 90,
         spotlightPosition: [-6.5, 0.5, 1.0],
-        pivot: [-8.8, 1.0, 1.0]
+        pivot: [-8.8, 1.0, 1.0],
+        mainTexture: "Standard"
     },
     {
         name: 'Chair',
@@ -160,7 +164,8 @@ var furnituresConfig = [{
         initRotation: utils.MakeRotateXMatrix(0),
         initOrbitAngle: 0,
         spotlightPosition: [0.0, 4.0, 1.0],
-        pivot: [0.0, 0.0, 1.0]
+        pivot: [0.0, 0.0, 1.0],
+        mainTexture: "Stoffa"
     },
     {
         name: 'Sofa',
@@ -169,7 +174,8 @@ var furnituresConfig = [{
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: -70,
         spotlightPosition: [-6.5, 6.0, -5.5],
-        pivot: [-6.5, 0.0, -5.5]
+        pivot: [-6.5, 0.0, -5.5],
+        mainTexture: "White"
     },
     {
         name: 'Room',
@@ -178,7 +184,8 @@ var furnituresConfig = [{
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
         spotlightPosition: [0.0, 1.0, 0.0],
-        pivot: [0.0, 0.0, 0.0]
+        pivot: [0.0, 0.0, 0.0],
+        mainTexture: "Wall"
     }, ,
     {
         name: 'LampCloset',
@@ -187,7 +194,8 @@ var furnituresConfig = [{
         initRotation: utils.MakeRotateYMatrix(90),
         initOrbitAngle: 0,
         spotlightPosition: [0.0, 1.0, 0.0],
-        pivot: [7.5, 0.0, -2.5]
+        pivot: [7.5, 0.0, -2.5],
+        mainTexture: "Black"
     },
     {
         name: 'LampShelf',
@@ -196,7 +204,8 @@ var furnituresConfig = [{
         initRotation: utils.MakeRotateYMatrix(-90),
         initOrbitAngle: 0,
         spotlightPosition: [0.0, 1.0, 1.0],
-        pivot: [-7.0, 0.0, 1.0]
+        pivot: [-7.0, 0.0, 1.0],
+        mainTexture: "Black"
     },
     {
         name: 'Fan',
@@ -205,7 +214,8 @@ var furnituresConfig = [{
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
         spotlightPosition: [0.0, 2.0, 0.0],
-        pivot: [0.0, 5.5, 0.0]
+        pivot: [0.0, 5.5, 0.0],
+        mainTexture: "FanOn"
     }
 ];
 
@@ -364,7 +374,7 @@ function initParams() {
     spotlight.coneOut = 40.0;
     spotlight.On = true;
     //direct light
-    dirLightColor = coldLight;
+    dirLightColor = warmLight;
     dirLightDirection = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
         Math.sin(dirLightAlpha),
         Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
@@ -509,6 +519,12 @@ async function loadModel(furnitureConfig) {
                 //If the texture is embedded in the material pick from it
                 if (materialProperty.key == "$tex.file") {
                     component.textureImageName = materialProperty.value;
+
+                    //Keeps track of the current image set to the main texture in order to change it properly from GUI
+                    if (component.textureImageName.includes(furnitureConfig.mainTexture)) {
+                        console.log("main texture " + furnitureConfig.mainTexture + " for config " + furniture.name);
+                        component.currentTextureImageName = component.textureImageName;
+                    }
                 }
             });
 
@@ -559,7 +575,6 @@ async function loadModel(furnitureConfig) {
                     setTexture(image, texture);
                     textures.set(component.textureImageName, image);
                 };
-                console.log(modelsDir + furniture.name + "/" + component.textureImageName);
                 image.src = modelsDir + furniture.name + "/" + component.textureImageName;
             }
             component.texture = texture;
@@ -931,20 +946,21 @@ function changeTexture(furniture, imageName) {
     baseDir = window.location.href.replace(page, '');
     modelsDir = baseDir + "models/";
 
-    console.log(modelsDir + furniture.name + "/" + imageName + ".webp");
+    console.log(modelsDir + furniture.name + "/textures/" + imageName + ".webp");
 
     image.onload = function() {
         furniture.children.forEach(component => {
-            if (component.texture) {
+            console.log("curr tex " + component.currentTextureImageName);
+            if (component.texture && component.currentTextureImageName == component.textureImageName) {
                 console.log("image");
-                console.log(image.src);
-
+                component.textureImageName = imageName;
+                component.currentTextureImageName = imageName;
                 setTexture(image, component.texture)
             }
         });
     };
 
-    image.src = modelsDir + furniture.name + "/" + imageName + ".webp";
+    image.src = modelsDir + furniture.name + "/textures/" + imageName + ".webp";
 }
 
 function hideTexturePanel() {
@@ -960,17 +976,19 @@ function hideTexturePanel() {
 function setTexturePanel(furniture) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() {
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-
-            document.getElementById("textures").style.setProperty("visibility", "visible");
-            dropDown = document.getElementById("texture-drop-down");
+        let textureToggle = document.getElementById("textures");
+        dropDown = document.getElementById("texture-drop-down");
+        htmlText = "";
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200 && JSON.parse(xmlHttp.response).length != 0) {
+            textureToggle.style.setProperty("visibility", "visible")
             textures = JSON.parse(xmlHttp.response);
-            htmlText = "";
             textures.forEach(texture => {
                 htmlText += `<option value="${texture}">${texture}</option>`
             });
 
             dropDown.innerHTML = htmlText;
+        } else {
+            textureToggle.style.setProperty("visibility", "hidden");
         }
     };
     xmlHttp.open("GET", "/textures/" + furniture);

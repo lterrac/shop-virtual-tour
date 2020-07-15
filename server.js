@@ -16,8 +16,8 @@ app.use(express.static(__dirname)); //Serves resources from public folder
  */
 let serverPort = process.env.PORT || 8000;
 // Get all files in directory
-app.get("/textures/:model", function(req, res) {
-    let modelDirectory = directoryModels + '/' + req.params.model;
+app.get("/textures/:model/", function(req, res) {
+    let modelDirectory = directoryModels + '/' + req.params.model + "/textures";
     let textures = []
         //passsing directoryPath and callback function
     fs.readdir(modelDirectory, function(err, files) {
