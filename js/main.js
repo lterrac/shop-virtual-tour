@@ -123,8 +123,8 @@ var furnituresConfig = [{
         initScale: utils.MakeScaleMatrix(0.8),
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
-        spotlightPosition: [1.0, 4.0,-6.0],
-        pivot: [1.0,0.0,-6.0]
+        spotlightPosition: [1.0, 4.0, -6.0],
+        pivot: [1.0, 0.0, -6.0]
     },
     {
         name: 'Bed_2',
@@ -136,11 +136,11 @@ var furnituresConfig = [{
         pivot: [5.0, 0.0, -6.0]
     },
     {
-        name: 'Closet',
-        initCoords: utils.MakeTranslateMatrix(9.5, 1.6, -2.5),
-        initScale: utils.MakeScaleMatrix(3),
-        initRotation: utils.MakeRotateYMatrix(-90),
-        initOrbitAngle: 180,
+        name: 'Wardrobe',
+        initCoords: utils.MakeTranslateMatrix(9.5, 0, -2.5),
+        initScale: utils.MakeScaleMatrix(1),
+        initRotation: utils.MakeRotateYMatrix(+90),
+        initOrbitAngle: 0,
         spotlightPosition: [7.5, 0.5, -2.5],
         pivot: [9.5, 1.0, -2.5]
     },
@@ -199,8 +199,8 @@ var furnituresConfig = [{
         pivot: [-7.0, 0.0, 1.0]
     },
     {
-        name: 'fan',
-        initCoords: utils.MakeTranslateMatrix(0.0, 5.5, 0.0),
+        name: 'Fan',
+        initCoords: utils.MakeTranslateMatrix(0.0, 4.8, 0.0),
         initScale: utils.MakeScaleMatrix(0.5),
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
@@ -296,20 +296,6 @@ async function main() {
     drawScene();
 
 }
-
-/**
- * Set the camera selection in the GUI
- */
-function setGUI() {
-    furnituresConfig.forEach(furniture => {
-        if (furniture.name != 'Room') {
-            let cameras = document.getElementById("cameras").innerHTML
-            cameras += `<input type="radio" name="cameras" onchange='setCamera("${furniture.name}")';"> ${furniture.name} camera <br />`
-            document.getElementById("cameras").innerHTML = cameras
-        }
-    });
-}
-
 
 function getCanvas() {
     canvas = document.getElementById("main_canvas");
@@ -573,7 +559,7 @@ async function loadModel(furnitureConfig) {
                     setTexture(image, texture);
                     textures.set(component.textureImageName, image);
                 };
-                console.log(parsedChildren.name);
+                console.log(modelsDir + furniture.name + "/" + component.textureImageName);
                 image.src = modelsDir + furniture.name + "/" + component.textureImageName;
             }
             component.texture = texture;
@@ -611,12 +597,12 @@ function setGraphRoot() {
     worldMatrix = root.worldMatrix;
 }
 
-function animate(){
+function animate() {
     var currentTime = (new Date).getTime();
-    if(lastUpdateTime){
-      var deltaC = ((currentTime - lastUpdateTime)) / 10.0;
-      let furniture = furnitures.get('fan');
-      furniture.localMatrix = utils.multiplyMatrices(utils.MakeRotateYMatrix(deltaC),furniture.localMatrix);
+    if (lastUpdateTime) {
+        var deltaC = ((currentTime - lastUpdateTime)) / 10.0;
+        let furniture = furnitures.get('Fan');
+        furniture.localMatrix = utils.multiplyMatrices(utils.MakeRotateYMatrix(deltaC), furniture.localMatrix);
     }
     lastUpdateTime = currentTime;
 }
@@ -800,13 +786,13 @@ function rotateCameraOnFurniture(dx) {
     furniture.orbit.angle += (0.3 * dx);
 
     furniture.orbit.localMatrix =
-    utils.multiplyMatrices(
         utils.multiplyMatrices(
-            utils.MakeRotateYMatrix(furniture.orbit.angle),
-            utils.invertMatrix(furniture.orbit.scale)
-        ),
-        utils.MakeTranslateMatrix(0.0, 3.0, 3.0)
-    );
+            utils.multiplyMatrices(
+                utils.MakeRotateYMatrix(furniture.orbit.angle),
+                utils.invertMatrix(furniture.orbit.scale)
+            ),
+            utils.MakeTranslateMatrix(0.0, 3.0, 3.0)
+        );
     let posInOrbit = furniture.getOrbitCoordinates();
     cx = posInOrbit[0];
     cy = posInOrbit[1];
@@ -855,6 +841,20 @@ function sendUniformsToGPU() {
 utils.initInteraction();
 window.onload = main;
 
+
+/**
+ * Set the camera selection in the GUI
+ */
+function setGUI() {
+    furnituresConfig.forEach(furniture => {
+        if (furniture.name != 'Room' && !furniture.name.includes("Lamp")) {
+            let cameras = document.getElementById("cameras").innerHTML
+            cameras += `<input type="radio" name="cameras" onchange='setCamera("${furniture.name}")';"> ${furniture.name} camera <br />`
+            document.getElementById("cameras").innerHTML = cameras
+        }
+    });
+}
+
 // Lights function
 
 function toggleAmbient() {
@@ -896,11 +896,11 @@ function toggleSpotLight() {
     if (spotlight.On == false) {
         spotlight.color = warmLight;
         spotlight.On = true;
-        //console.log('spotlight on');
+        changeTexture(furnitures.get('Fan'), 'FanOn')
     } else {
         spotlight.color = [0.0, 0.0, 0.0, 1.0];
         spotlight.On = false;
-        //console.log('spotlight off');
+        changeTexture(furnitures.get('Fan'), 'FanOff')
     }
 }
 
@@ -920,8 +920,11 @@ function nextCamera() {
 
 // Texture GUI function
 
-function changeTexture(imageName) {
-    let furniture = furnitures.get(cameraTour[currCamera]);
+function changeTextureOnClick(imageName) {
+    changeTexture(furnitures.get(cameraTour[currCamera]), imageName);
+}
+
+function changeTexture(furniture, imageName) {
     let image = new Image();
     var path = window.location.pathname;
     var page = path.split("/").pop();
