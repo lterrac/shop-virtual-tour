@@ -526,6 +526,35 @@ async function loadModel(furnitureConfig) {
                         component.currentTextureImageName = component.textureImageName;
                     }
                 }
+
+                if (materialProperty.key == "$clr.diffuse") {
+                    component.diffuse = materialProperty.value;
+                    component.diffuse.push(1.0);
+                } else {
+                    component.diffuse = diffuseLightColor;
+                }
+
+
+                if (materialProperty.key == "$clr.specular") {
+                    component.specular = materialProperty.value;
+                    component.specular.push(1.0);
+                } else {
+                    component.specular = specularLightColor;
+                }
+
+                if (materialProperty.key == "$clr.ambient") {
+                    component.ambient = materialProperty.value;
+                    component.ambient.push(1.0);
+                    console.log("diffffff " + component.diffuse);
+                } else {
+                    component.ambient = ambientLightColor;
+                }
+
+                if (materialProperty.key == "$mat.shininess") {
+                    component.shine = materialProperty.value;
+                } else {
+                    component.shine = specShine;
+                }
             });
 
 
@@ -638,10 +667,9 @@ function drawScene() {
 
     updateTransformationMatrices(root);
 
-    sendUniformsToGPU();
-
     root.children.filter(children => children.indices)
         .forEach(component => {
+            sendUniformsToGPU(component);
             drawElement(component);
         });
 
@@ -649,7 +677,7 @@ function drawScene() {
         updateTransformationMatrices(furniture);
         furniture.children.forEach(component => {
 
-            sendUniformsToGPU();
+            sendUniformsToGPU(component);
             drawElement(component);
 
 
@@ -824,14 +852,16 @@ function updateSpotlightPosition() {
     }
 }
 
-function sendUniformsToGPU() {
+function sendUniformsToGPU(component) {
     gl.uniform3fv(eyePosHandle, [cx, cy, cz]);
     //ambient light
-    gl.uniform4fv(ambientLightHandle, ambientLightColor);
+    console.log("CCCCCCCCCOmp ");
+    console.log(component);
+    gl.uniform4fv(ambientLightHandle, component.ambient);
     //brdf
-    gl.uniform4fv(diffuseLightHandle, diffuseLightColor);
-    gl.uniform4fv(specularLightHandle, specularLightColor);
-    gl.uniform1f(specShineHandle, specShine);
+    gl.uniform4fv(diffuseLightHandle, component.diffuse);
+    gl.uniform4fv(specularLightHandle, component.specular);
+    gl.uniform1f(specShineHandle, component.shine);
     gl.uniform1f(mixTextureHandle, mixTextureColor);
     gl.uniform2fv(specularTypeHandle, specularType);
     //directional light
@@ -850,9 +880,8 @@ function sendUniformsToGPU() {
     gl.uniform1f(spotlight.targetHandle, spotlight.target);
     gl.uniform1f(spotlight.coneInHandle, spotlight.coneIn);
     gl.uniform1f(spotlight.coneOutHandle, spotlight.coneOut);
-
-
 }
+
 utils.initInteraction();
 window.onload = main;
 
