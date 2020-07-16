@@ -360,7 +360,7 @@ function initParams() {
     //point light
     pointLightColor = warmLight;
     pointLightPosition = [0.0, 3.0, 0.0];
-    pointLightDecay = 1.0;
+    pointLightDecay = 0.2;
     pointLightTarget = 1.0;
     //spot lights
     spotlight = {};
@@ -522,41 +522,23 @@ async function loadModel(furnitureConfig) {
 
                     //Keeps track of the current image set to the main texture in order to change it properly from GUI
                     if (component.textureImageName.includes(furnitureConfig.mainTexture)) {
-                        console.log("main texture " + furnitureConfig.mainTexture + " for config " + furniture.name);
                         component.currentTextureImageName = component.textureImageName;
                     }
                 }
 
-                if (materialProperty.key == "$clr.diffuse") {
-                    component.diffuse = materialProperty.value;
-                    component.diffuse.push(1.0);
-                } else {
-                    component.diffuse = diffuseLightColor;
-                }
+                if (materialProperty.key == "$clr.diffuse") component.diffuse = new Float32Array([materialProperty.value, 1.0]);
 
+                if (materialProperty.key == "$clr.specular") component.specular = new Float32Array([materialProperty.value, 1.0]);
 
-                if (materialProperty.key == "$clr.specular") {
-                    component.specular = materialProperty.value;
-                    component.specular.push(1.0);
-                } else {
-                    component.specular = specularLightColor;
-                }
+                if (materialProperty.key == "$clr.ambient") component.ambient = new Float32Array([materialProperty.value[0] / 2.0, materialProperty.value[1] / 2.0, materialProperty.value[2] / 2.0, 1.0]);
 
-                if (materialProperty.key == "$clr.ambient") {
-                    component.ambient = materialProperty.value;
-                    component.ambient.push(1.0);
-                    console.log("diffffff " + component.diffuse);
-                } else {
-                    component.ambient = ambientLightColor;
-                }
-
-                if (materialProperty.key == "$mat.shininess") {
-                    component.shine = materialProperty.value;
-                } else {
-                    component.shine = specShine;
-                }
+                if (materialProperty.key == "$mat.shininess") component.shine = materialProperty.value * 1.0;
             });
 
+            if (!component.diffuse) component.diffuse = diffuseLightColor;
+            if (!component.specular) component.specular = specularLightColor;
+            if (!component.ambient) component.ambient = ambientLightColor;
+            if (!component.shine) component.shine = specShine;
 
 
             let vao = gl.createVertexArray();
@@ -855,8 +837,6 @@ function updateSpotlightPosition() {
 function sendUniformsToGPU(component) {
     gl.uniform3fv(eyePosHandle, [cx, cy, cz]);
     //ambient light
-    console.log("CCCCCCCCCOmp ");
-    console.log(component);
     gl.uniform4fv(ambientLightHandle, component.ambient);
     //brdf
     gl.uniform4fv(diffuseLightHandle, component.diffuse);
@@ -914,13 +894,11 @@ function toggleAmbient() {
 
 function toggleDirect() {
     if (directON == false) {
-        dirLightColor = coldLight;
+        dirLightColor = warmLight;
         directON = true;
-        //console.log('direct on');
     } else {
         dirLightColor = [0.0, 0.0, 0.0, 1.0];
         directON = false;
-        //console.log('direct off');
     }
 }
 
@@ -928,11 +906,9 @@ function togglePointLight() {
     if (pointLightON == false) {
         pointLightColor = warmLight;
         pointLightON = true;
-        //console.log('point on');
     } else {
         pointLightColor = [0.0, 0.0, 0.0, 1.0];
         pointLightON = false;
-        //console.log('point off');
     }
 }
 
@@ -951,8 +927,6 @@ function toggleSpotLight() {
 //Camera GUI function
 
 function setCamera(camera) {
-    console.log(camera);
-
     currCamera = cameraTour.indexOf(camera);
     switchCamera(currCamera);
 }
@@ -975,13 +949,9 @@ function changeTexture(furniture, imageName) {
     baseDir = window.location.href.replace(page, '');
     modelsDir = baseDir + "models/";
 
-    console.log(modelsDir + furniture.name + "/textures/" + imageName + ".webp");
-
     image.onload = function() {
         furniture.children.forEach(component => {
-            console.log("curr tex " + component.currentTextureImageName);
             if (component.texture && component.currentTextureImageName == component.textureImageName) {
-                console.log("image");
                 component.textureImageName = imageName;
                 component.currentTextureImageName = imageName;
                 setTexture(image, component.texture)
