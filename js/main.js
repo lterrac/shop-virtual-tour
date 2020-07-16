@@ -964,7 +964,7 @@ function setTexturePanel(furniture) {
             textures = JSON.parse(xmlHttp.response);
             htmlText = "";
             textures.forEach(texture => {
-                htmlText += `<option value="${texture}">${texture}</option>`
+                htmlText += `<option id="tex" value="${texture}">${texture}</option>`
             });
 
             dropDown.innerHTML = htmlText;
