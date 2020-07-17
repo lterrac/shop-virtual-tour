@@ -5688,7 +5688,7 @@
             "semantic": 0,
             "index": 0,
             "type": 1,
-            "value": 128
+            "value": 1280
         }, {
             "key": "$mat.opacity",
             "semantic": 0,

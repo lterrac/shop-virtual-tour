@@ -943,18 +943,18 @@ function toggleDirect() {
 function togglePointLight() {
     if (pointLightON == 0.0) {
         pointLightON = 1.0;
+        changeTexture(furnitures.get('Fan'), 'FanOn')
     } else {
         pointLightON = 0.0;
+        changeTexture(furnitures.get('Fan'), 'FanOff')
     }
 }
 
 function toggleSpotLight() {
     if (spotlight.On == 0.0) {
         spotlight.On = 1.0;
-        changeTexture(furnitures.get('Fan'), 'FanOn')
     } else {
         spotlight.On = 0.0;
-        changeTexture(furnitures.get('Fan'), 'FanOff')
     }
 }
 

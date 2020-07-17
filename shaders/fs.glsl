@@ -99,6 +99,8 @@ void main() {
 
   //ambient component
   vec4 ambient = ambientLightColor * texture_col * switchLights.x;
+  //material emission
+  vec4 material = materialEmission;
 
-  outColor = clamp(ambient + diffuse + specular + materialEmission, 0.0, 1.0);
+  outColor = clamp(ambient + diffuse + specular + material, 0.0, 1.0);
 }
