@@ -241,16 +241,16 @@ var utils = {
                 keys[e.keyCode] = true;
                 switch (e.keyCode) {
                     case 37:
-                        if (currCamera == 0) rvy = rvy + 0.5;
+                        if (currCamera == 0) rvy = rvy + 1.0;
                         break;
                     case 39:
-                        if (currCamera == 0) rvy = rvy - 0.5;
+                        if (currCamera == 0) rvy = rvy - 1.0;
                         break;
                     case 38:
-                        if (currCamera == 0) rvx = rvx + 0.5;
+                        if (currCamera == 0) rvx = rvx + 1.0;
                         break;
                     case 40:
-                        if (currCamera == 0) rvx = rvx - 0.5;
+                        if (currCamera == 0) rvx = rvx - 1.0;
                         break;
                     case 81:
                         if (currCamera == 0) rvz = rvz + 0.5;
@@ -283,20 +283,17 @@ var utils = {
             if (keys[e.keyCode]) {
                 keys[e.keyCode] = false;
                 switch (e.keyCode) {
-                    case 32:
-                        nextCamera();
-                        break;
                     case 37:
-                        if (currCamera == 0) rvy = rvy - 0.5;
+                        if (currCamera == 0) rvy = rvy - 1.0;
                         break;
                     case 39:
-                        if (currCamera == 0) rvy = rvy + 0.5;
+                        if (currCamera == 0) rvy = rvy + 1.0;
                         break;
                     case 38:
-                        if (currCamera == 0) rvx = rvx - 0.5;
+                        if (currCamera == 0) rvx = rvx - 1.0;
                         break;
                     case 40:
-                        if (currCamera == 0) rvx = rvx + 0.5;
+                        if (currCamera == 0) rvx = rvx + 1.0;
                         break;
                     case 49:
                         toggleAmbient();

@@ -876,9 +876,11 @@ function toggleAmbient() {
     if (ambientON == false) {
         ambientLightColor = lowLight;
         ambientON = true;
+        document.getElementById('ambient').checked = true;
     } else {
         ambientLightColor = [0.0, 0.0, 0.0, 1.0];
         ambientON = false;
+        document.getElementById('ambient').checked = false;
     }
 }
 
@@ -887,11 +889,11 @@ function toggleDirect() {
     if (directON == false) {
         dirLightColor = coldLight;
         directON = true;
-        //console.log('direct on');
+        document.getElementById('direct').checked = true;
     } else {
         dirLightColor = [0.0, 0.0, 0.0, 1.0];
         directON = false;
-        //console.log('direct off');
+        document.getElementById('direct').checked = false;
     }
 }
 
@@ -899,11 +901,11 @@ function togglePointLight() {
     if (pointLightON == false) {
         pointLightColor = warmLight;
         pointLightON = true;
-        //console.log('point on');
+        document.getElementById('point').checked = true;
     } else {
         pointLightColor = [0.0, 0.0, 0.0, 1.0];
         pointLightON = false;
-        //console.log('point off');
+        document.getElementById('point').checked = false;
     }
 }
 
@@ -925,11 +927,6 @@ function setCamera(camera) {
     console.log(camera);
 
     currCamera = cameraTour.indexOf(camera);
-    switchCamera(currCamera);
-}
-
-function nextCamera() {
-    currCamera = (currCamera + 1) % (furnitures.size + 1);
     switchCamera(currCamera);
 }
 
@@ -983,7 +980,7 @@ function setTexturePanel(furniture) {
             textureToggle.style.setProperty("visibility", "visible")
             textures = JSON.parse(xmlHttp.response);
             textures.forEach(texture => {
-                htmlText += `<option value="${texture}">${texture}</option>`
+                htmlText += `<option id="tex" value="${texture}">${texture}</option>`
             });
 
             dropDown.innerHTML = htmlText;
