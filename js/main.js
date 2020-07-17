@@ -139,12 +139,12 @@ var furnituresConfig = [{
     },
     {
         name: 'Wardrobe',
-        initCoords: utils.MakeTranslateMatrix(9.5, 0, -2.5),
+        initCoords: utils.MakeTranslateMatrix(9.5, 0, -5.0),
         initScale: utils.MakeScaleMatrix(1),
         initRotation: utils.MakeRotateYMatrix(+90),
         initOrbitAngle: 0,
-        spotlightPosition: [7.5, 0.5, -2.5],
-        pivot: [9.5, 1.0, -2.5],
+        spotlightPosition: [9.5, 0.5, -5.0],
+        pivot: [9.5, 1.0, -5.0],
         mainTexture: "White"
     },
     {
@@ -189,12 +189,12 @@ var furnituresConfig = [{
     }, ,
     {
         name: 'LampCloset',
-        initCoords: utils.MakeTranslateMatrix(7.5, 0.0, -2.5),
+        initCoords: utils.MakeTranslateMatrix(7.5, 0.0, -5.0),
         initScale: utils.MakeScaleMatrix(0.5),
         initRotation: utils.MakeRotateYMatrix(90),
         initOrbitAngle: 0,
         spotlightPosition: [0.0, 1.0, 0.0],
-        pivot: [7.5, 0.0, -2.5],
+        pivot: [7.5, 0.0, -5.0],
         mainTexture: "Black"
     },
     {
@@ -216,6 +216,16 @@ var furnituresConfig = [{
         spotlightPosition: [0.0, 2.0, 0.0],
         pivot: [0.0, 5.5, 0.0],
         mainTexture: "FanOn"
+    },
+    {
+        name: 'Window',
+        initCoords: utils.MakeTranslateMatrix(9.9, 1.5, 0.0),
+        initScale: utils.MakeScaleMatrix(1.5),
+        initRotation: utils.MakeRotateYMatrix(0),
+        initOrbitAngle: 0,
+        spotlightPosition: [0.0, 2.0, 0.0],
+        pivot: [0.0, 5.5, 0.0],
+        mainTexture: "White"
     }
 ];
 

@@ -1,9 +1,15 @@
 body {
+    position: fixed;
+    overflow-y: scroll;
     margin: 0;
     background-color: gray;
+    padding: 0;
+    font-family: helvetica;
 }
 
-canvas {
-    display: block;
+#main_canvas {
+    height: 100%;
+    width: 100%;
+    margin: 0;
     background-color: white;
 }
