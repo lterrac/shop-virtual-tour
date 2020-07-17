@@ -123,32 +123,32 @@ var materialEmissionHandle;
  */
 var furnituresConfig = [{
         name: 'Bed',
-        initCoords: utils.MakeTranslateMatrix(1.0, 0.0, -5.0),
+        initCoords: utils.MakeTranslateMatrix(0.0, 0.0, -5.0),
         initScale: utils.MakeScaleMatrix(0.8),
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
-        spotlightPosition: [1.0, 4.0, -6.0],
-        pivot: [1.0, 0.0, -6.0],
+        spotlightPosition: [0.0, 4.0, -6.0],
+        pivot: [0.0, 0.0, -6.0],
         mainTexture: "Orion"
     },
     {
         name: 'Bed_2',
-        initCoords: utils.MakeTranslateMatrix(5.0, 0.0, -5.0),
+        initCoords: utils.MakeTranslateMatrix(4.0, 0.0, -5.0),
         initScale: utils.MakeScaleMatrix(0.9),
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
-        spotlightPosition: [5.0, 4.0, -6.0],
-        pivot: [5.0, 0.0, -6.0],
-        mainTexture: "Flower"
+        spotlightPosition: [4.0, 4.0, -6.0],
+        pivot: [4.0, 0.0, -6.0],
+        mainTexture: "Pois"
     },
     {
         name: 'Wardrobe',
-        initCoords: utils.MakeTranslateMatrix(9.5, 0, -5.0),
+        initCoords: utils.MakeTranslateMatrix(10.0, 0.0, -5.0),
         initScale: utils.MakeScaleMatrix(1),
         initRotation: utils.MakeRotateYMatrix(+90),
         initOrbitAngle: 0,
-        spotlightPosition: [9.5, 0.5, -5.0],
-        pivot: [9.5, 1.0, -5.0],
+        spotlightPosition: [7.0, 0.5, -5.0],
+        pivot: [10.0, 1.0, -5.0],
         mainTexture: "White"
     },
     {
@@ -163,13 +163,23 @@ var furnituresConfig = [{
     },
     {
         name: 'Chair',
-        initCoords: utils.MakeTranslateMatrix(0.0, 0.0, 1.0),
+        initCoords: utils.MakeTranslateMatrix(1.0, 0.0, 0.0),
         initScale: utils.MakeScaleMatrix(0.3),
-        initRotation: utils.MakeRotateXMatrix(0),
+        initRotation: utils.MakeRotateYMatrix(30),
         initOrbitAngle: 0,
-        spotlightPosition: [0.0, 4.0, 1.0],
-        pivot: [0.0, 0.0, 1.0],
+        spotlightPosition: [1.0, 4.0, 0.0],
+        pivot: [1.0, 0.0, 0.0],
         mainTexture: "Stoffa"
+    },
+    {
+        name: 'Coffee Table',
+        initCoords: utils.MakeTranslateMatrix(0.5, 0.5, 1.5),
+        initScale: utils.MakeScaleMatrix(0.015),
+        initRotation: utils.MakeRotateYMatrix(-90),
+        initOrbitAngle: 0,
+        spotlightPosition: [-1.0, 4.0, 1.5],
+        pivot: [-1.0, 0.5, 1.5],
+        mainTexture: "M1"
     },
     {
         name: 'Sofa',
@@ -222,32 +232,32 @@ var furnituresConfig = [{
         mainTexture: "FanOn"
     },
     {
-        name: 'WindowRight',
-        initCoords: utils.MakeTranslateMatrix(9.9, 1.5, 0.0),
-        initScale: utils.MakeScaleMatrix(1.5),
-        initRotation: utils.MakeRotateYMatrix(0),
-        initOrbitAngle: 0,
-        spotlightPosition: [0.0, 2.0, 0.0],
-        pivot: [0.0, 5.5, 0.0],
-        mainTexture: "White"
-    },
-    {
         name: 'Fridge',
-        initCoords: utils.MakeTranslateMatrix(-3.0, -0.4, -6.5),
+        initCoords: utils.MakeTranslateMatrix(-8.8, 0.0, 6.0),
         initScale: utils.MakeScaleMatrix(1.5),
-        initRotation: utils.MakeRotateYMatrix(0),
+        initRotation: utils.MakeRotateYMatrix(-90),
         initOrbitAngle: 0,
-        spotlightPosition: [0.0, 2.0, 0.0],
-        pivot: [0.0, 5.5, 0.0],
+        spotlightPosition: [-8.8, 4.0, 6.0],
+        pivot: [-8.8, 1.5, 6.0],
         mainTexture: "Fridge"
     },
     {
+        name: 'WindowRight',
+        initCoords: utils.MakeTranslateMatrix(9.9, 1.5, 1.0),
+        initScale: utils.MakeScaleMatrix(1.5),
+        initRotation: utils.MakeRotateYMatrix(0),
+        initOrbitAngle: 0,
+        spotlightPosition: [9.9, 4.5, 1.0],
+        pivot: [9.9, 1.5, 1.0],
+        mainTexture: "White"
+    },
+     {
         name: 'WindowFront',
         initCoords: utils.MakeTranslateMatrix(0.0, 1.5, -9.9),
         initScale: utils.MakeScaleMatrix(1.5),
         initRotation: utils.MakeRotateYMatrix(90),
         initOrbitAngle: 0,
-        spotlightPosition: [0.0, 2.0, -6.0],
+        spotlightPosition: [0.0, 3.5, -9.9],
         pivot: [0.0, 1.5, -9.9],
         mainTexture: "White"
     }
@@ -405,7 +415,7 @@ function initParams() {
     spotlight.decay = 1.0;
     spotlight.target = 2.5;
     spotlight.coneIn = 0.6;
-    spotlight.coneOut = 40.0;
+    spotlight.coneOut = 50.0;
     spotlight.On = true;
     //direct light
     dirLightColor = coldLight;
@@ -913,7 +923,7 @@ window.onload = main;
  */
 function setGUI() {
     furnituresConfig.forEach(furniture => {
-        if (furniture.name != 'Room' && !furniture.name.includes("Lamp")) {
+        if (furniture.name != 'Room' && !furniture.name.includes("Lamp") && !furniture.name.includes("Window")) {
             let cameras = document.getElementById("cameras").innerHTML
             cameras += `<input type="radio" name="cameras" onchange='setCamera("${furniture.name}")';"> ${furniture.name} camera <br />`
             document.getElementById("cameras").innerHTML = cameras
