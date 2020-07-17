@@ -226,6 +226,16 @@ var furnituresConfig = [{
         spotlightPosition: [0.0, 2.0, 0.0],
         pivot: [0.0, 5.5, 0.0],
         mainTexture: "White"
+    },
+    {
+        name: 'Fridge',
+        initCoords: utils.MakeTranslateMatrix(-3.0, -0.4, -6.5),
+        initScale: utils.MakeScaleMatrix(1.5),
+        initRotation: utils.MakeRotateYMatrix(0),
+        initOrbitAngle: 0,
+        spotlightPosition: [0.0, 2.0, 0.0],
+        pivot: [0.0, 5.5, 0.0],
+        mainTexture: "Fridge"
     }
 ];
 
