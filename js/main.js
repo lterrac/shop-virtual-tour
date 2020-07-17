@@ -861,9 +861,11 @@ function toggleAmbient() {
     if (ambientON == false) {
         ambientLightColor = lowLight;
         ambientON = true;
+        document.getElementById('ambient').checked = true;
     } else {
         ambientLightColor = [0.0, 0.0, 0.0, 1.0];
         ambientON = false;
+        document.getElementById('ambient').checked = false;
     }
 }
 
@@ -872,11 +874,11 @@ function toggleDirect() {
     if (directON == false) {
         dirLightColor = coldLight;
         directON = true;
-        //console.log('direct on');
+        document.getElementById('direct').checked = true;
     } else {
         dirLightColor = [0.0, 0.0, 0.0, 1.0];
         directON = false;
-        //console.log('direct off');
+        document.getElementById('direct').checked = false;
     }
 }
 
@@ -884,11 +886,11 @@ function togglePointLight() {
     if (pointLightON == false) {
         pointLightColor = warmLight;
         pointLightON = true;
-        //console.log('point on');
+        document.getElementById('point').checked = true;
     } else {
         pointLightColor = [0.0, 0.0, 0.0, 1.0];
         pointLightON = false;
-        //console.log('point off');
+        document.getElementById('point').checked = false;
     }
 }
 
@@ -896,11 +898,11 @@ function toggleSpotLight() {
     if (spotlight.On == false) {
         spotlight.color = warmLight;
         spotlight.On = true;
-        //console.log('spotlight on');
+        document.getElementById('spot').checked = true;
     } else {
         spotlight.color = [0.0, 0.0, 0.0, 1.0];
         spotlight.On = false;
-        //console.log('spotlight off');
+        document.getElementById('spot').checked = false;
     }
 }
 
