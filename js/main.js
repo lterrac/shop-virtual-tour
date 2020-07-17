@@ -59,6 +59,8 @@ var coldLight;
 var lowLight;
 //ambient light
 var ambientLightColor;
+//emission color
+var materialEmission;
 //point light
 var pointLightColor;
 var pointLightPosition;
@@ -113,6 +115,8 @@ var dirLightDirectionHandle;
 var dirLightColorHandle;
 var pointLightDecayHandle;
 var pointLightTargetHandle;
+var switchLightsHandle;
+var materialEmissionHandle;
 
 /**
  * Furnitures initial configuration
@@ -218,7 +222,7 @@ var furnituresConfig = [{
         mainTexture: "FanOn"
     },
     {
-        name: 'Window',
+        name: 'WindowRight',
         initCoords: utils.MakeTranslateMatrix(9.9, 1.5, 0.0),
         initScale: utils.MakeScaleMatrix(1.5),
         initRotation: utils.MakeRotateYMatrix(0),
@@ -236,6 +240,16 @@ var furnituresConfig = [{
         spotlightPosition: [0.0, 2.0, 0.0],
         pivot: [0.0, 5.5, 0.0],
         mainTexture: "Fridge"
+    },
+    {
+        name: 'WindowFront',
+        initCoords: utils.MakeTranslateMatrix(0.0, 1.5, -9.9),
+        initScale: utils.MakeScaleMatrix(1.5),
+        initRotation: utils.MakeRotateYMatrix(90),
+        initOrbitAngle: 0,
+        spotlightPosition: [0.0, 2.0, -6.0],
+        pivot: [0.0, 1.5, -9.9],
+        mainTexture: "White"
     }
 ];
 
@@ -361,26 +375,26 @@ async function initializeProgram() {
 function initParams() {
     //control vars lights
     specularType = [1, 0];
-    ambientON = true;
-    directON = true;
-    pointLightON = true;
-    dirLightAlpha = -utils.degToRad(270);
-    dirLightBeta = -utils.degToRad(270);
+    ambientON = 1.0;
+    directON = 1.0;
+    pointLightON = 1.0;
+    dirLightAlpha = -utils.degToRad(0);
+    dirLightBeta = -utils.degToRad(45);
 
     currCamera = 0;
     cameraTour = ['Free camera'];
 
 
     //lights
-    warmLight = [230 / 255, 230 / 255, 230 / 255, 1.0];
-    coldLight = [120 / 255, 170 / 255, 170 / 255, 1.0];
+    warmLight = [175/255 ,175/255, 152/255, 1.0];
+    coldLight = [70 / 255, 70 / 255, 70 / 255, 1.0];
     lowLight = [30 / 255, 30 / 255, 30 / 255, 1.0];
     //ambient light
     ambientLightColor = lowLight;
     //point light
     pointLightColor = warmLight;
     pointLightPosition = [0.0, 3.0, 0.0];
-    pointLightDecay = 0.2;
+    pointLightDecay = 0.3;
     pointLightTarget = 1.0;
     //spot lights
     spotlight = {};
@@ -389,12 +403,12 @@ function initParams() {
     spotlight.position = [0.0, 4.0, 1.0];
     spotlight.targetPosition = [0.0, 0.0, 1.0];
     spotlight.decay = 1.0;
-    spotlight.target = 1.5;
+    spotlight.target = 2.5;
     spotlight.coneIn = 0.6;
     spotlight.coneOut = 40.0;
     spotlight.On = true;
     //direct light
-    dirLightColor = warmLight;
+    dirLightColor = coldLight;
     dirLightDirection = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
         Math.sin(dirLightAlpha),
         Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
@@ -445,12 +459,14 @@ function getUniformLocations() {
     eyePosHandle = gl.getUniformLocation(program, 'eyePos');
     //lights uniforms
     ambientLightHandle = gl.getUniformLocation(program, 'ambientLightColor');
+    materialEmissionHandle = gl.getUniformLocation(program, 'materialEmission');
     diffuseLightHandle = gl.getUniformLocation(program, 'diffuseLightColor');
     specularLightHandle = gl.getUniformLocation(program, 'specularLightColor');
     specShineHandle = gl.getUniformLocation(program, 'specShine');
     specularTypeHandle = gl.getUniformLocation(program, 'specularType');
     mixTextureHandle = gl.getUniformLocation(program, 'mix_texture');
 
+    switchLightsHandle = gl.getUniformLocation(program, 'switchLights');
     dirLightDirectionHandle = gl.getUniformLocation(program, 'dirLightDirection');
     dirLightColorHandle = gl.getUniformLocation(program, 'dirLightColor');
     pointLightColorHandle = gl.getUniformLocation(program, 'pointLightColor');
@@ -550,15 +566,18 @@ async function loadModel(furnitureConfig) {
 
                 if (materialProperty.key == "$clr.specular") component.specular = new Float32Array([materialProperty.value[0], materialProperty.value[1], materialProperty.value[2], 1.0]);
 
-                if (materialProperty.key == "$clr.ambient") component.ambient = new Float32Array([materialProperty.value[0] / 2.0, materialProperty.value[1] / 2.0, materialProperty.value[2] / 2.0, 1.0]);
+                if (materialProperty.key == "$clr.ambient") component.ambient = new Float32Array([materialProperty.value[0] / 3.0, materialProperty.value[1] / 3.0, materialProperty.value[2] / 3.0, 1.0]);
 
                 if (materialProperty.key == "$mat.shininess") component.shine = materialProperty.value * 1.0;
+
+                if (materialProperty.key == "$clr.emission") component.emission = materialProperty.value; 
             });
 
             if (!component.diffuse) component.diffuse = diffuseLightColor;
             if (!component.specular) component.specular = specularLightColor;
             if (!component.ambient) component.ambient = ambientLightColor;
             if (!component.shine) component.shine = specShine;
+            if (!component.emission ) component.emission = [0.0, 0.0, 0.0, 1.0];
 
             let vao = gl.createVertexArray();
             gl.bindVertexArray(vao);
@@ -786,7 +805,7 @@ function drawElement(furniture) {
 //TODO CONTROLLA CHE SIA TUTTO GIUSTO
 function updateTransformationMatrices(furniture) {
     updateView(furniture);
-    updatePerspective();
+    updatePerspective(furniture);
 }
 
 function updateView(furniture) {
@@ -798,10 +817,10 @@ function updateView(furniture) {
     viewWorldMatrix = utils.multiplyMatrices(viewMatrix, furniture.worldMatrix);
 }
 
-function updatePerspective() {
+function updatePerspective(furniture) {
     perspectiveMatrix = utils.MakePerspective(60, gl.canvas.width / gl.canvas.height, 0.01, 2000.0);
     projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewWorldMatrix);
-    normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldMatrix));
+    normalMatrix = utils.invertMatrix(utils.transposeMatrix(furniture.worldMatrix));
 }
 
 function switchCamera(currCamera) {
@@ -857,6 +876,8 @@ function sendUniformsToGPU(component) {
     gl.uniform3fv(eyePosHandle, [cx, cy, cz]);
     //ambient light
     gl.uniform4fv(ambientLightHandle, component.ambient);
+    //emission
+    gl.uniform4fv(materialEmissionHandle, component.emission);
     //brdf
     gl.uniform4fv(diffuseLightHandle, component.diffuse);
     gl.uniform4fv(specularLightHandle, component.specular);
@@ -879,6 +900,8 @@ function sendUniformsToGPU(component) {
     gl.uniform1f(spotlight.targetHandle, spotlight.target);
     gl.uniform1f(spotlight.coneInHandle, spotlight.coneIn);
     gl.uniform1f(spotlight.coneOutHandle, spotlight.coneOut);
+
+    gl.uniform4fv(switchLightsHandle,[ambientON,directON,pointLightON,spotlight.On]);
 }
 
 utils.initInteraction();
@@ -901,44 +924,36 @@ function setGUI() {
 // Lights function
 
 function toggleAmbient() {
-    if (ambientON == false) {
-        ambientLightColor = lowLight;
-        ambientON = true;
+    if (ambientON == 0.0) {
+        ambientON = 1.0;
     } else {
-        ambientLightColor = [0.0, 0.0, 0.0, 1.0];
-        ambientON = false;
+        ambientON = 0.0;
     }
 }
 
 
 function toggleDirect() {
-    if (directON == false) {
-        dirLightColor = warmLight;
-        directON = true;
+    if (directON == 0.0) {
+        directON = 1.0;
     } else {
-        dirLightColor = [0.0, 0.0, 0.0, 1.0];
-        directON = false;
+        directON = 0.0;
     }
 }
 
 function togglePointLight() {
-    if (pointLightON == false) {
-        pointLightColor = warmLight;
-        pointLightON = true;
+    if (pointLightON == 0.0) {
+        pointLightON = 1.0;
     } else {
-        pointLightColor = [0.0, 0.0, 0.0, 1.0];
-        pointLightON = false;
+        pointLightON = 0.0;
     }
 }
 
 function toggleSpotLight() {
-    if (spotlight.On == false) {
-        spotlight.color = warmLight;
-        spotlight.On = true;
+    if (spotlight.On == 0.0) {
+        spotlight.On = 1.0;
         changeTexture(furnitures.get('Fan'), 'FanOn')
     } else {
-        spotlight.color = [0.0, 0.0, 0.0, 1.0];
-        spotlight.On = false;
+        spotlight.On = 0.0;
         changeTexture(furnitures.get('Fan'), 'FanOff')
     }
 }

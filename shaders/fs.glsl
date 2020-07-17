@@ -11,11 +11,13 @@ out vec4 outColor;
 uniform sampler2D u_texture;
 uniform vec3 eyePos;
 uniform vec4 ambientLightColor;
+uniform vec4 materialEmission;
 uniform vec4 diffuseLightColor;
 uniform vec4 specularLightColor;
 uniform float specShine;
 uniform vec2 specularType;
 uniform float mix_texture;
+uniform vec4 switchLights;
 //direct light
 uniform vec3 dirLightDirection;
 uniform vec4 dirLightColor;
@@ -85,7 +87,7 @@ void main() {
   vec4 diffSpotLight = diffuseLambert(spotLightCol,normalVec,spotLightRelDir);
 
   vec4 diffColor = diffuseLightColor * (1.0 - mix_texture) + texture_col * mix_texture;
-  vec4 diffuse = diffColor * (diffDirectLight + diffPointLight + diffSpotLight);
+  vec4 diffuse = diffColor * (diffDirectLight * switchLights.y + diffPointLight * switchLights.z + diffSpotLight * switchLights.w);
 
   //specular components
 
@@ -93,10 +95,10 @@ void main() {
   vec4 specPointLight = compSpecular(pointLightRelDir, pointLightCol, normalVec, eyedirVec);
   vec4 specSpotLight = compSpecular(spotLightRelDir, spotLightCol, normalVec, eyedirVec);
   
-  vec4 specular = (specDirectLight + specPointLight + specSpotLight) * specularLightColor;
+  vec4 specular = (specDirectLight * switchLights.y + specPointLight * switchLights.z + specSpotLight * switchLights.w) * specularLightColor;
 
   //ambient component
-  vec4 ambient = ambientLightColor * texture_col;
+  vec4 ambient = ambientLightColor * texture_col * switchLights.x;
 
-  outColor = clamp(ambient + diffuse + specular, 0.0, 1.0);
+  outColor = clamp(ambient + diffuse + specular + materialEmission, 0.0, 1.0);
 }
