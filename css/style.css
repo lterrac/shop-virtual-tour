@@ -1,0 +1,52 @@
+body {
+    position: fixed;
+    overflow-y: scroll;
+    margin: 0;
+    background-color: rgba(113, 135, 156, 0.246);
+    padding: 0;
+    font-family: helvetica;
+}
+
+#main_canvas {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    background-color: white;
+}
+
+#container {
+    position: relative;
+}
+
+#controls {
+    top: 1px;
+    right: 1px;
+    background-color:  transparent;
+    height: 100%;
+}
+
+#info {
+    position: absolute;
+    top: 38%;
+    background-color: rgba(255, 255, 255, 0.6);
+    left: 1px;
+}
+
+input {
+    margin: 7px;
+}
+
+h2 {
+    color: dodgerblue;
+}
+
+#lights,
+#cameras {
+    font-style: italic;
+}
+
+#texture-drop-down,
+select>option {
+    background-color: transparent;
+    font-weight: bold;
+}

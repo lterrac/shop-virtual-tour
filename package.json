@@ -1,0 +1,18 @@
+{
+    "name": "shop-virtual-tour",
+    "description": "",
+    "version": "1.0.0",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/lterrac/shop-virtual-tour.git"
+    },
+    "author": "Luca Terracciano, Manuel Trivilino",
+    "license": "MIT",
+    "dependencies": {
+        "express": "^4.17.1"
+    }
+}
