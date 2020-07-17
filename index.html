@@ -14,51 +14,50 @@
 </head>
 
 <body>
-    
 
-        <canvas id="main_canvas" style="width: 100%;">
+
+    <canvas id="main_canvas" style="width: 100%;">
             Your browser does not support the HTML5 canvas element.
         </canvas>
 
-        <div id="controls">
-            <p>
+    <div id="controls">
+        <p>
             <h2> Shop Virtual Tour </h2>
-            </p>
-            <p><b> Cameras </b></p>
-            <form>
-                <div id="cameras">
-                    <input type="radio" name="cameras" onchange='setCamera("Free camera");' checked> Free
-                    camera <br />
-                </div>
-            </form>
-            <p><b> Lights </b></p>
-            <div id="lights">
-                <input type="checkbox" id="chbx" onclick="toggleAmbient();" checked />Ambient<br />
-                <input type="checkbox" id="chbx" onclick="toggleDirect();" checked />Direct<br />
-                <input type="checkbox" id="chbx" onclick="togglePointLight();" checked />Point Light<br />
-                <input type="checkbox" id="chbx" onclick="toggleSpotLight();" checked />Spot Light<br />
+        </p>
+        <p><b> Cameras </b></p>
+        <form>
+            <div id="cameras">
+                <input type="radio" name="cameras" onchange='setCamera("Free camera");' checked> Free camera <br />
             </div>
-            <p id="textures" style="visibility: hidden;">
-                <b> Textures</b> <br>
-                <select id="texture-drop-down" onclick='changeTexture(this.value);'>
+        </form>
+        <p><b> Lights </b></p>
+        <div id="lights">
+            <input type="checkbox" id="chbx" onclick="toggleAmbient();" checked />Ambient<br />
+            <input type="checkbox" id="chbx" onclick="toggleDirect();" checked />Direct<br />
+            <input type="checkbox" id="chbx" onclick="togglePointLight();" checked />Point Light<br />
+            <input type="checkbox" id="chbx" onclick="toggleSpotLight();" checked />Spot Light<br />
+        </div>
+        <p id="textures" style="visibility: hidden;">
+            <b> Textures</b> <br>
+            <select id="texture-drop-down" onclick='changeTexture(this.value);'>
                 </select>
-            </p>
-        </div>
-        <div id="info" style ="margin-bottom: 0px; padding: 2px;">
-            <h4> W : forward</h4>
-            <h4> S : backward</h4>
-            <h4> D : right</h4>
-            <h4> A : left</h4>
-            <h4> R : up</h4>
-            <h4> F : down</h4>
-            <h4>&#9644</h4>
-            <h4> &#8679 :  cam up</h4>
-            <h4> &#8681 :  cam down</h4>
-            <h4> &#8678	:  cam left</h4>
-            <h4> &#8680 :  cam right</h4>
+        </p>
+    </div>
+    <div id="info" style="margin-top: 0px; padding: 2px;">
+        <h4> W : forward</h4>
+        <h4> S : backward</h4>
+        <h4> D : right</h4>
+        <h4> A : left</h4>
+        <h4> R : up</h4>
+        <h4> F : down</h4>
+        <h4>&#9644</h4>
+        <h4> &#8679 : cam up</h4>
+        <h4> &#8681 : cam down</h4>
+        <h4> &#8678 : cam left</h4>
+        <h4> &#8680 : cam right</h4>
 
-        </div>
-    
+    </div>
+
 
 </body>
 
