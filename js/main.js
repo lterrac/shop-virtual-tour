@@ -123,8 +123,8 @@ var furnituresConfig = [{
         initScale: utils.MakeScaleMatrix(0.8),
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
-        spotlightPosition: [1.0, 4.0,-6.0],
-        pivot: [1.0,0.0,-6.0]
+        spotlightPosition: [1.0, 4.0, -6.0],
+        pivot: [1.0, 0.0, -6.0]
     },
     {
         name: 'Bed_2',
@@ -611,12 +611,12 @@ function setGraphRoot() {
     worldMatrix = root.worldMatrix;
 }
 
-function animate(){
+function animate() {
     var currentTime = (new Date).getTime();
-    if(lastUpdateTime){
-      var deltaC = ((currentTime - lastUpdateTime)) / 10.0;
-      let furniture = furnitures.get('fan');
-      furniture.localMatrix = utils.multiplyMatrices(utils.MakeRotateYMatrix(deltaC),furniture.localMatrix);
+    if (lastUpdateTime) {
+        var deltaC = ((currentTime - lastUpdateTime)) / 10.0;
+        let furniture = furnitures.get('fan');
+        furniture.localMatrix = utils.multiplyMatrices(utils.MakeRotateYMatrix(deltaC), furniture.localMatrix);
     }
     lastUpdateTime = currentTime;
 }
@@ -800,13 +800,13 @@ function rotateCameraOnFurniture(dx) {
     furniture.orbit.angle += (0.3 * dx);
 
     furniture.orbit.localMatrix =
-    utils.multiplyMatrices(
         utils.multiplyMatrices(
-            utils.MakeRotateYMatrix(furniture.orbit.angle),
-            utils.invertMatrix(furniture.orbit.scale)
-        ),
-        utils.MakeTranslateMatrix(0.0, 3.0, 3.0)
-    );
+            utils.multiplyMatrices(
+                utils.MakeRotateYMatrix(furniture.orbit.angle),
+                utils.invertMatrix(furniture.orbit.scale)
+            ),
+            utils.MakeTranslateMatrix(0.0, 3.0, 3.0)
+        );
     let posInOrbit = furniture.getOrbitCoordinates();
     cx = posInOrbit[0];
     cy = posInOrbit[1];
@@ -910,11 +910,6 @@ function setCamera(camera) {
     console.log(camera);
 
     currCamera = cameraTour.indexOf(camera);
-    switchCamera(currCamera);
-}
-
-function nextCamera() {
-    currCamera = (currCamera + 1) % (furnitures.size + 1);
     switchCamera(currCamera);
 }
 

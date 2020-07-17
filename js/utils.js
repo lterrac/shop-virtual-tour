@@ -283,9 +283,6 @@ var utils = {
             if (keys[e.keyCode]) {
                 keys[e.keyCode] = false;
                 switch (e.keyCode) {
-                    case 32:
-                        nextCamera();
-                        break;
                     case 37:
                         if (currCamera == 0) rvy = rvy - 0.5;
                         break;
