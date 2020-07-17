@@ -124,7 +124,7 @@ var materialEmissionHandle;
 var furnituresConfig = [{
         name: 'Bed',
         initCoords: utils.MakeTranslateMatrix(0.0, 0.0, -5.0),
-        initScale: utils.MakeScaleMatrix(0.8),
+        initScale: utils.MakeScaleMatrix(0.9),
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
         spotlightPosition: [0.0, 4.0, -6.0],
@@ -132,7 +132,7 @@ var furnituresConfig = [{
         mainTexture: "Orion"
     },
     {
-        name: 'Bed_2',
+        name: 'Bed 2',
         initCoords: utils.MakeTranslateMatrix(4.0, 0.0, -5.0),
         initScale: utils.MakeScaleMatrix(0.9),
         initRotation: utils.MakeRotateYMatrix(0),
@@ -576,7 +576,7 @@ async function loadModel(furnitureConfig) {
 
                 if (materialProperty.key == "$clr.specular") component.specular = new Float32Array([materialProperty.value[0], materialProperty.value[1], materialProperty.value[2], 1.0]);
 
-                if (materialProperty.key == "$clr.ambient") component.ambient = new Float32Array([materialProperty.value[0] / 3.0, materialProperty.value[1] / 3.0, materialProperty.value[2] / 3.0, 1.0]);
+                if (materialProperty.key == "$clr.ambient") component.ambient = new Float32Array([materialProperty.value[0] / 4.0, materialProperty.value[1] / 4.0, materialProperty.value[2] / 4.0, 1.0]);
 
                 if (materialProperty.key == "$mat.shininess") component.shine = materialProperty.value * 1.0;
 
