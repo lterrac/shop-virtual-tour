@@ -536,9 +536,9 @@ async function loadModel(furnitureConfig) {
                     }
                 }
 
-                if (materialProperty.key == "$clr.diffuse") component.diffuse = new Float32Array([materialProperty.value, 1.0]);
+                if (materialProperty.key == "$clr.diffuse") component.diffuse = new Float32Array([materialProperty.value[0], materialProperty.value[1], materialProperty.value[2], 1.0]);
 
-                if (materialProperty.key == "$clr.specular") component.specular = new Float32Array([materialProperty.value, 1.0]);
+                if (materialProperty.key == "$clr.specular") component.specular = new Float32Array([materialProperty.value[0], materialProperty.value[1], materialProperty.value[2], 1.0]);
 
                 if (materialProperty.key == "$clr.ambient") component.ambient = new Float32Array([materialProperty.value[0] / 2.0, materialProperty.value[1] / 2.0, materialProperty.value[2] / 2.0, 1.0]);
 
@@ -549,7 +549,6 @@ async function loadModel(furnitureConfig) {
             if (!component.specular) component.specular = specularLightColor;
             if (!component.ambient) component.ambient = ambientLightColor;
             if (!component.shine) component.shine = specShine;
-
 
             let vao = gl.createVertexArray();
             gl.bindVertexArray(vao);
