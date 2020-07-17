@@ -59,6 +59,8 @@ var coldLight;
 var lowLight;
 //ambient light
 var ambientLightColor;
+//emission color
+var materialEmission;
 //point light
 var pointLightColor;
 var pointLightPosition;
@@ -113,38 +115,40 @@ var dirLightDirectionHandle;
 var dirLightColorHandle;
 var pointLightDecayHandle;
 var pointLightTargetHandle;
+var switchLightsHandle;
+var materialEmissionHandle;
 
 /**
  * Furnitures initial configuration
  */
 var furnituresConfig = [{
         name: 'Bed',
-        initCoords: utils.MakeTranslateMatrix(1.0, 0.0, -5.0),
+        initCoords: utils.MakeTranslateMatrix(0.0, 0.0, -5.0),
         initScale: utils.MakeScaleMatrix(0.8),
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
-        spotlightPosition: [1.0, 4.0, -6.0],
-        pivot: [1.0, 0.0, -6.0],
+        spotlightPosition: [0.0, 4.0, -6.0],
+        pivot: [0.0, 0.0, -6.0],
         mainTexture: "Orion"
     },
     {
         name: 'Bed_2',
-        initCoords: utils.MakeTranslateMatrix(5.0, 0.0, -5.0),
+        initCoords: utils.MakeTranslateMatrix(4.0, 0.0, -5.0),
         initScale: utils.MakeScaleMatrix(0.9),
         initRotation: utils.MakeRotateYMatrix(0),
         initOrbitAngle: 0,
-        spotlightPosition: [5.0, 4.0, -6.0],
-        pivot: [5.0, 0.0, -6.0],
-        mainTexture: "Flower"
+        spotlightPosition: [4.0, 4.0, -6.0],
+        pivot: [4.0, 0.0, -6.0],
+        mainTexture: "Pois"
     },
     {
         name: 'Wardrobe',
-        initCoords: utils.MakeTranslateMatrix(9.5, 0, -2.5),
+        initCoords: utils.MakeTranslateMatrix(10.0, 0.0, -5.0),
         initScale: utils.MakeScaleMatrix(1),
         initRotation: utils.MakeRotateYMatrix(+90),
         initOrbitAngle: 0,
-        spotlightPosition: [7.5, 0.5, -2.5],
-        pivot: [9.5, 1.0, -2.5],
+        spotlightPosition: [7.0, 0.5, -5.0],
+        pivot: [10.0, 1.0, -5.0],
         mainTexture: "White"
     },
     {
@@ -159,13 +163,23 @@ var furnituresConfig = [{
     },
     {
         name: 'Chair',
-        initCoords: utils.MakeTranslateMatrix(0.0, 0.0, 1.0),
+        initCoords: utils.MakeTranslateMatrix(1.0, 0.0, 0.0),
         initScale: utils.MakeScaleMatrix(0.3),
-        initRotation: utils.MakeRotateXMatrix(0),
+        initRotation: utils.MakeRotateYMatrix(30),
         initOrbitAngle: 0,
-        spotlightPosition: [0.0, 4.0, 1.0],
-        pivot: [0.0, 0.0, 1.0],
+        spotlightPosition: [1.0, 4.0, 0.0],
+        pivot: [1.0, 0.0, 0.0],
         mainTexture: "Stoffa"
+    },
+    {
+        name: 'Coffee Table',
+        initCoords: utils.MakeTranslateMatrix(0.5, 0.25, 1.5),
+        initScale: utils.MakeScaleMatrix(0.015),
+        initRotation: utils.MakeRotateYMatrix(-90),
+        initOrbitAngle: 0,
+        spotlightPosition: [-1.0, 4.0, 1.5],
+        pivot: [-1.0, 0.5, 1.5],
+        mainTexture: "Marmo"
     },
     {
         name: 'Sofa',
@@ -189,12 +203,12 @@ var furnituresConfig = [{
     }, ,
     {
         name: 'LampCloset',
-        initCoords: utils.MakeTranslateMatrix(7.5, 0.0, -2.5),
+        initCoords: utils.MakeTranslateMatrix(7.5, 0.0, -5.0),
         initScale: utils.MakeScaleMatrix(0.5),
         initRotation: utils.MakeRotateYMatrix(90),
         initOrbitAngle: 0,
         spotlightPosition: [0.0, 1.0, 0.0],
-        pivot: [7.5, 0.0, -2.5],
+        pivot: [7.5, 0.0, -5.0],
         mainTexture: "Black"
     },
     {
@@ -216,6 +230,36 @@ var furnituresConfig = [{
         spotlightPosition: [0.0, 2.0, 0.0],
         pivot: [0.0, 5.5, 0.0],
         mainTexture: "FanOn"
+    },
+    {
+        name: 'Fridge',
+        initCoords: utils.MakeTranslateMatrix(-8.8, 0.0, 6.0),
+        initScale: utils.MakeScaleMatrix(1.5),
+        initRotation: utils.MakeRotateYMatrix(-90),
+        initOrbitAngle: 0,
+        spotlightPosition: [-8.8, 4.0, 6.0],
+        pivot: [-8.8, 1.5, 6.0],
+        mainTexture: "Fridge"
+    },
+    {
+        name: 'WindowRight',
+        initCoords: utils.MakeTranslateMatrix(9.9, 1.5, 1.0),
+        initScale: utils.MakeScaleMatrix(1.5),
+        initRotation: utils.MakeRotateYMatrix(0),
+        initOrbitAngle: 0,
+        spotlightPosition: [9.9, 4.5, 1.0],
+        pivot: [9.9, 1.5, 1.0],
+        mainTexture: "White"
+    },
+    {
+        name: 'WindowFront',
+        initCoords: utils.MakeTranslateMatrix(0.0, 1.5, -9.9),
+        initScale: utils.MakeScaleMatrix(1.5),
+        initRotation: utils.MakeRotateYMatrix(90),
+        initOrbitAngle: 0,
+        spotlightPosition: [0.0, 3.5, -9.9],
+        pivot: [0.0, 1.5, -9.9],
+        mainTexture: "White"
     }
 ];
 
@@ -341,26 +385,26 @@ async function initializeProgram() {
 function initParams() {
     //control vars lights
     specularType = [1, 0];
-    ambientON = true;
-    directON = true;
-    pointLightON = true;
-    dirLightAlpha = -utils.degToRad(270);
-    dirLightBeta = -utils.degToRad(270);
+    ambientON = 1.0;
+    directON = 1.0;
+    pointLightON = 1.0;
+    dirLightAlpha = -utils.degToRad(0);
+    dirLightBeta = -utils.degToRad(45);
 
     currCamera = 0;
     cameraTour = ['Free camera'];
 
 
     //lights
-    warmLight = [230 / 255, 230 / 255, 230 / 255, 1.0];
-    coldLight = [120 / 255, 170 / 255, 170 / 255, 1.0];
+    warmLight = [175 / 255, 175 / 255, 152 / 255, 1.0];
+    coldLight = [70 / 255, 70 / 255, 70 / 255, 1.0];
     lowLight = [30 / 255, 30 / 255, 30 / 255, 1.0];
     //ambient light
     ambientLightColor = lowLight;
     //point light
     pointLightColor = warmLight;
     pointLightPosition = [0.0, 3.0, 0.0];
-    pointLightDecay = 1.0;
+    pointLightDecay = 0.3;
     pointLightTarget = 1.0;
     //spot lights
     spotlight = {};
@@ -369,12 +413,12 @@ function initParams() {
     spotlight.position = [0.0, 4.0, 1.0];
     spotlight.targetPosition = [0.0, 0.0, 1.0];
     spotlight.decay = 1.0;
-    spotlight.target = 1.5;
+    spotlight.target = 2.5;
     spotlight.coneIn = 0.6;
-    spotlight.coneOut = 40.0;
-    spotlight.On = true;
+    spotlight.coneOut = 50.0;
+    spotlight.On = 0.0;
     //direct light
-    dirLightColor = warmLight;
+    dirLightColor = coldLight;
     dirLightDirection = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
         Math.sin(dirLightAlpha),
         Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
@@ -425,12 +469,14 @@ function getUniformLocations() {
     eyePosHandle = gl.getUniformLocation(program, 'eyePos');
     //lights uniforms
     ambientLightHandle = gl.getUniformLocation(program, 'ambientLightColor');
+    materialEmissionHandle = gl.getUniformLocation(program, 'materialEmission');
     diffuseLightHandle = gl.getUniformLocation(program, 'diffuseLightColor');
     specularLightHandle = gl.getUniformLocation(program, 'specularLightColor');
     specShineHandle = gl.getUniformLocation(program, 'specShine');
     specularTypeHandle = gl.getUniformLocation(program, 'specularType');
     mixTextureHandle = gl.getUniformLocation(program, 'mix_texture');
 
+    switchLightsHandle = gl.getUniformLocation(program, 'switchLights');
     dirLightDirectionHandle = gl.getUniformLocation(program, 'dirLightDirection');
     dirLightColorHandle = gl.getUniformLocation(program, 'dirLightColor');
     pointLightColorHandle = gl.getUniformLocation(program, 'pointLightColor');
@@ -522,13 +568,26 @@ async function loadModel(furnitureConfig) {
 
                     //Keeps track of the current image set to the main texture in order to change it properly from GUI
                     if (component.textureImageName.includes(furnitureConfig.mainTexture)) {
-                        console.log("main texture " + furnitureConfig.mainTexture + " for config " + furniture.name);
                         component.currentTextureImageName = component.textureImageName;
                     }
                 }
+
+                if (materialProperty.key == "$clr.diffuse") component.diffuse = new Float32Array([materialProperty.value[0], materialProperty.value[1], materialProperty.value[2], 1.0]);
+
+                if (materialProperty.key == "$clr.specular") component.specular = new Float32Array([materialProperty.value[0], materialProperty.value[1], materialProperty.value[2], 1.0]);
+
+                if (materialProperty.key == "$clr.ambient") component.ambient = new Float32Array([materialProperty.value[0] / 3.0, materialProperty.value[1] / 3.0, materialProperty.value[2] / 3.0, 1.0]);
+
+                if (materialProperty.key == "$mat.shininess") component.shine = materialProperty.value * 1.0;
+
+                if (materialProperty.key == "$clr.emission") component.emission = materialProperty.value;
             });
 
-
+            if (!component.diffuse) component.diffuse = diffuseLightColor;
+            if (!component.specular) component.specular = specularLightColor;
+            if (!component.ambient) component.ambient = ambientLightColor;
+            if (!component.shine) component.shine = specShine;
+            if (!component.emission) component.emission = [0.0, 0.0, 0.0, 1.0];
 
             let vao = gl.createVertexArray();
             gl.bindVertexArray(vao);
@@ -638,10 +697,9 @@ function drawScene() {
 
     updateTransformationMatrices(root);
 
-    sendUniformsToGPU();
-
     root.children.filter(children => children.indices)
         .forEach(component => {
+            sendUniformsToGPU(component);
             drawElement(component);
         });
 
@@ -649,7 +707,7 @@ function drawScene() {
         updateTransformationMatrices(furniture);
         furniture.children.forEach(component => {
 
-            sendUniformsToGPU();
+            sendUniformsToGPU(component);
             drawElement(component);
 
 
@@ -757,7 +815,7 @@ function drawElement(furniture) {
 //TODO CONTROLLA CHE SIA TUTTO GIUSTO
 function updateTransformationMatrices(furniture) {
     updateView(furniture);
-    updatePerspective();
+    updatePerspective(furniture);
 }
 
 function updateView(furniture) {
@@ -769,10 +827,10 @@ function updateView(furniture) {
     viewWorldMatrix = utils.multiplyMatrices(viewMatrix, furniture.worldMatrix);
 }
 
-function updatePerspective() {
+function updatePerspective(furniture) {
     perspectiveMatrix = utils.MakePerspective(60, gl.canvas.width / gl.canvas.height, 0.01, 2000.0);
     projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewWorldMatrix);
-    normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldMatrix));
+    normalMatrix = utils.invertMatrix(utils.transposeMatrix(furniture.worldMatrix));
 }
 
 function switchCamera(currCamera) {
@@ -824,14 +882,16 @@ function updateSpotlightPosition() {
     }
 }
 
-function sendUniformsToGPU() {
+function sendUniformsToGPU(component) {
     gl.uniform3fv(eyePosHandle, [cx, cy, cz]);
     //ambient light
-    gl.uniform4fv(ambientLightHandle, ambientLightColor);
+    gl.uniform4fv(ambientLightHandle, component.ambient);
+    //emission
+    gl.uniform4fv(materialEmissionHandle, component.emission);
     //brdf
-    gl.uniform4fv(diffuseLightHandle, diffuseLightColor);
-    gl.uniform4fv(specularLightHandle, specularLightColor);
-    gl.uniform1f(specShineHandle, specShine);
+    gl.uniform4fv(diffuseLightHandle, component.diffuse);
+    gl.uniform4fv(specularLightHandle, component.specular);
+    gl.uniform1f(specShineHandle, component.shine);
     gl.uniform1f(mixTextureHandle, mixTextureColor);
     gl.uniform2fv(specularTypeHandle, specularType);
     //directional light
@@ -851,8 +911,9 @@ function sendUniformsToGPU() {
     gl.uniform1f(spotlight.coneInHandle, spotlight.coneIn);
     gl.uniform1f(spotlight.coneOutHandle, spotlight.coneOut);
 
-
+    gl.uniform4fv(switchLightsHandle, [ambientON, directON, pointLightON, spotlight.On]);
 }
+
 utils.initInteraction();
 window.onload = main;
 
@@ -862,7 +923,7 @@ window.onload = main;
  */
 function setGUI() {
     furnituresConfig.forEach(furniture => {
-        if (furniture.name != 'Room' && !furniture.name.includes("Lamp")) {
+        if (furniture.name != 'Room' && !furniture.name.includes("Lamp") && !furniture.name.includes("Window")) {
             let cameras = document.getElementById("cameras").innerHTML
             cameras += `<input type="radio" name="cameras" onchange='setCamera("${furniture.name}")';"> ${furniture.name} camera <br />`
             document.getElementById("cameras").innerHTML = cameras
@@ -910,22 +971,16 @@ function togglePointLight() {
 }
 
 function toggleSpotLight() {
-    if (spotlight.On == false) {
-        spotlight.color = warmLight;
-        spotlight.On = true;
-        changeTexture(furnitures.get('Fan'), 'FanOn')
+    if (spotlight.On == 0.0) {
+        spotlight.On = 1.0;
     } else {
-        spotlight.color = [0.0, 0.0, 0.0, 1.0];
-        spotlight.On = false;
-        changeTexture(furnitures.get('Fan'), 'FanOff')
+        spotlight.On = 0.0;
     }
 }
 
 //Camera GUI function
 
 function setCamera(camera) {
-    console.log(camera);
-
     currCamera = cameraTour.indexOf(camera);
     switchCamera(currCamera);
 }
@@ -943,13 +998,9 @@ function changeTexture(furniture, imageName) {
     baseDir = window.location.href.replace(page, '');
     modelsDir = baseDir + "models/";
 
-    console.log(modelsDir + furniture.name + "/textures/" + imageName + ".webp");
-
     image.onload = function() {
         furniture.children.forEach(component => {
-            console.log("curr tex " + component.currentTextureImageName);
             if (component.texture && component.currentTextureImageName == component.textureImageName) {
-                console.log("image");
                 component.textureImageName = imageName;
                 component.currentTextureImageName = imageName;
                 setTexture(image, component.texture)

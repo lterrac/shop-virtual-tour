@@ -1,13 +1,16 @@
 body {
-    height: 100%;
-    overflow: hidden;
+    position: fixed;
+    overflow-y: scroll;
     margin: 0;
     background-color: gray;
     padding: 0;
     font-family: helvetica;
 }
 
-canvas {
+#main_canvas {
+    height: 100%;
+    width: 100%;
+    margin: 0;
     background-color: white;
 }
 
@@ -19,7 +22,7 @@ canvas {
     position: absolute;
     top: 1px;
     right: 1px;
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.6);
     height: 100%;
 }
 

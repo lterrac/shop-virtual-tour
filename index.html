@@ -33,11 +33,11 @@
             <input type="checkbox" id="ambient" onclick="toggleAmbient();" checked />Ambient<br />
             <input type="checkbox" id="direct" onclick="toggleDirect();" checked />Direct<br />
             <input type="checkbox" id="point" onclick="togglePointLight();" checked />Point Light<br />
-            <input type="checkbox" id="spot" onclick="toggleSpotLight();" checked />Spot Light<br />
+            <input type="checkbox" id="spot" onclick="toggleSpotLight();" />Spot Light<br />
         </div>
         <p id="textures" style="visibility: hidden;">
             <b> Textures</b> <br>
-            <select id="texture-drop-down" onclick='changeTexture(this.value);'>
+            <select id="texture-drop-down" onclick='changeTextureOnClick(this.value);'>
                 </select>
         </p>
     </div>
