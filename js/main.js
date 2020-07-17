@@ -843,13 +843,16 @@ function switchCamera(currCamera) {
         //point spotlight to the furniture
         updateSpotlightPosition();
         //turn on the spotlight
-        spotlight.color = warmLight;
+        document.getElementById('spot').checked = true;
+        spotlight.On = 1.0;
         setTexturePanel(furnitures.get(cameraTour[currCamera]).name);
     } else {
         //set the camera position to the initial point
         cx = initCameraPosition[0];
         cy = initCameraPosition[1];
         cz = initCameraPosition[2];
+        spotlight.On = 0.0;
+        document.getElementById('spot').checked = false;
         hideTexturePanel();
     }
 }
@@ -923,7 +926,7 @@ window.onload = main;
  */
 function setGUI() {
     furnituresConfig.forEach(furniture => {
-        if (furniture.name != 'Room' && !furniture.name.includes("Lamp") && !furniture.name.includes("Window")) {
+        if (furniture.name != 'Room' && !furniture.name.includes("Lamp") && !furniture.name.includes("Window") && !furniture.name.includes("Fan")) {
             let cameras = document.getElementById("cameras").innerHTML
             cameras += `<input type="radio" name="cameras" onchange='setCamera("${furniture.name}")';"> ${furniture.name} camera <br />`
             document.getElementById("cameras").innerHTML = cameras
@@ -973,8 +976,10 @@ function togglePointLight() {
 function toggleSpotLight() {
     if (spotlight.On == 0.0) {
         spotlight.On = 1.0;
+        document.getElementById('spot').checked = true;
     } else {
         spotlight.On = 0.0;
+        document.getElementById('spot').checked = false;
     }
 }
 
