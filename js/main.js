@@ -173,13 +173,13 @@ var furnituresConfig = [{
     },
     {
         name: 'Coffee Table',
-        initCoords: utils.MakeTranslateMatrix(0.5, 0.5, 1.5),
+        initCoords: utils.MakeTranslateMatrix(0.5, 0.25, 1.5),
         initScale: utils.MakeScaleMatrix(0.015),
         initRotation: utils.MakeRotateYMatrix(-90),
         initOrbitAngle: 0,
         spotlightPosition: [-1.0, 4.0, 1.5],
         pivot: [-1.0, 0.5, 1.5],
-        mainTexture: "M1"
+        mainTexture: "Marmo"
     },
     {
         name: 'Sofa',
@@ -251,7 +251,7 @@ var furnituresConfig = [{
         pivot: [9.9, 1.5, 1.0],
         mainTexture: "White"
     },
-     {
+    {
         name: 'WindowFront',
         initCoords: utils.MakeTranslateMatrix(0.0, 1.5, -9.9),
         initScale: utils.MakeScaleMatrix(1.5),
@@ -396,7 +396,7 @@ function initParams() {
 
 
     //lights
-    warmLight = [175/255 ,175/255, 152/255, 1.0];
+    warmLight = [175 / 255, 175 / 255, 152 / 255, 1.0];
     coldLight = [70 / 255, 70 / 255, 70 / 255, 1.0];
     lowLight = [30 / 255, 30 / 255, 30 / 255, 1.0];
     //ambient light
@@ -416,7 +416,7 @@ function initParams() {
     spotlight.target = 2.5;
     spotlight.coneIn = 0.6;
     spotlight.coneOut = 50.0;
-    spotlight.On = true;
+    spotlight.On = 0.0;
     //direct light
     dirLightColor = coldLight;
     dirLightDirection = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
@@ -580,14 +580,14 @@ async function loadModel(furnitureConfig) {
 
                 if (materialProperty.key == "$mat.shininess") component.shine = materialProperty.value * 1.0;
 
-                if (materialProperty.key == "$clr.emission") component.emission = materialProperty.value; 
+                if (materialProperty.key == "$clr.emission") component.emission = materialProperty.value;
             });
 
             if (!component.diffuse) component.diffuse = diffuseLightColor;
             if (!component.specular) component.specular = specularLightColor;
             if (!component.ambient) component.ambient = ambientLightColor;
             if (!component.shine) component.shine = specShine;
-            if (!component.emission ) component.emission = [0.0, 0.0, 0.0, 1.0];
+            if (!component.emission) component.emission = [0.0, 0.0, 0.0, 1.0];
 
             let vao = gl.createVertexArray();
             gl.bindVertexArray(vao);
@@ -911,7 +911,7 @@ function sendUniformsToGPU(component) {
     gl.uniform1f(spotlight.coneInHandle, spotlight.coneIn);
     gl.uniform1f(spotlight.coneOutHandle, spotlight.coneOut);
 
-    gl.uniform4fv(switchLightsHandle,[ambientON,directON,pointLightON,spotlight.On]);
+    gl.uniform4fv(switchLightsHandle, [ambientON, directON, pointLightON, spotlight.On]);
 }
 
 utils.initInteraction();

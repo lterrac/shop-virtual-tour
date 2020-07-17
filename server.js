@@ -19,20 +19,29 @@ let serverPort = process.env.PORT || 8000;
 app.get("/textures/:model/", function(req, res) {
     let modelDirectory = directoryModels + '/' + req.params.model + "/textures";
     let textures = []
-        //passsing directoryPath and callback function
-    fs.readdir(modelDirectory, function(err, files) {
-        //handling error
-        if (err) {
-            return console.log('Unable to scan directory: ' + err);
+
+    try {
+        if (fs.existsSync(modelDirectory)) {
+            //passsing directoryPath and callback function
+            fs.readdir(modelDirectory, function(err, files) {
+                //handling error
+                if (err) {
+                    return console.log('Unable to scan directory: ' + err);
+                }
+                //Include only textures files
+                files.forEach(function(file) {
+                    if (file.includes(".webp")) {
+                        textures.push(file.replace(".webp", ""));
+                    }
+                });
+                res.send(JSON.stringify(textures));
+            });
+        } else {
+            res.send(JSON.stringify(textures));
         }
-        //Include only textures files
-        files.forEach(function(file) {
-            if (file.includes(".webp")) {
-                textures.push(file.replace(".webp", ""));
-            }
-        });
-        res.send(JSON.stringify(textures));
-    });
+    } catch (e) {
+        console.log("An error occurred.")
+    }
 });
 
 app.set("port", serverPort);
