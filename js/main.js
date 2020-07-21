@@ -719,14 +719,6 @@ function drawScene() {
 
 function dynamicCamera() {
 
-    delta = Quaternion.fromEuler(utils.degToRad(rvz),
-        utils.degToRad(-rvx),
-        utils.degToRad(rvy));
-
-    rotation = rotation.mul(delta);
-
-
-
     dvecmat = utils.transposeMatrix(viewMatrix);
     dvecmat[12] = dvecmat[13] = dvecmat[14] = 0.0;
     xaxis = [dvecmat[0], dvecmat[4], dvecmat[8]];
@@ -771,7 +763,7 @@ function dynamicCamera() {
         elevation = theta / Math.PI * 180;
         roll = phi / Math.PI * 180;
         angle = psi / Math.PI * 180;
-    }
+   }
 
     delta = utils.multiplyMatrixVector(dvecmat, [vx, vy, vz, 0.0]);
     if (cx + delta[0] > 9.9)
@@ -812,7 +804,6 @@ function drawElement(furniture) {
 
 }
 
-//TODO CONTROLLA CHE SIA TUTTO GIUSTO
 function updateTransformationMatrices(furniture) {
     updateView(furniture);
     updatePerspective(furniture);
